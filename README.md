@@ -5,7 +5,7 @@ Access control for door opening in short stays
 
 - ultrasound sensor for proximity when in front of the board to lit the display
 - PIR sensor
-- RFID sensor for magnetic access
+- RFID sensor for admin magnetic access
 - Servo motor for opening/closing the door
 - Joystick for menu navigation
 - Buttons and joystick for menu navigation
@@ -17,9 +17,9 @@ Access control for door opening in short stays
 ## Features
 
 ### 
-- Sleep mode while proximity sensor doesn't trigger
+- Sleep mode with AOD, while proximity sensor doesn't trigger
 - First time initialization of the code.
-- Menu for pincode setup, wifi setup, enable/disable rfid, factory reset.
+- RFID access displays the menu for pincode setup, wifi setup, enable/disable rfid, factory reset.
 - Wifi connection via WPS or via file.
 - Database of access and access attempts.
 - 2 pin codes, one for admin log in and one for user log in.
@@ -27,9 +27,10 @@ Access control for door opening in short stays
   
 ### TELEGRAM BOT
 #### USER side
-- Temporary code access for the time of the stay
+- Request temporary code access for the time of the stay
 
 #### ADMIN side
+- Approve code request from clients
 - Admin receives attempts access notifications and can view access logs
 
 ## Future works
