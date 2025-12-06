@@ -15,7 +15,8 @@ void wait_reset_door(void);
 // ------------------------------------------------------ //
 //All these functions have to be implemented, they are like this just to compile
 void boot(void){
-    printf("A");
+    _hwInit();
+    draw_grid();
 }
 void door_locked(void){
     printf("A");
@@ -68,7 +69,7 @@ StateMachine_t fsm[] = {
 void fn_BOOT(void){
     printf("Boot \n");
     boot();
-    cur_state = STATE_DOOR_LOCKED;
+    //cur_state = STATE_DOOR_LOCKED;
 }
 
 void fn_DOOR_LOCKED(void){
@@ -139,9 +140,37 @@ void fn_WAIT_RESET_DOOR(void){
 
 // ---------------------------------------------//
 
+void _hwInit()
+{
+    /* Halting WDT and disabling master interrupts */
+    WDT_A_holdTimer();
+    Interrupt_disableMaster();
+
+    /* Set the core voltage level to VCORE1 */
+    PCM_setCoreVoltageLevel(PCM_VCORE1);
+
+    /* Set 2 flash wait states for Flash bank 0 and 1*/
+    FlashCtl_setWaitState(FLASH_BANK0, 2);
+    FlashCtl_setWaitState(FLASH_BANK1, 2);
+
+    /* Initializes Clock System */
+    CS_setDCOCenteredFrequency(CS_DCO_FREQUENCY_48);
+    CS_initClockSignal(CS_MCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
+    CS_initClockSignal(CS_HSMCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
+    CS_initClockSignal(CS_SMCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
+    CS_initClockSignal(CS_ACLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_1);
+
+    _graphicsInit();
+    _adcInit();
+    _timerInit();
+}
+
+
 // Function to run in the main
 void FSM_Run(void)
 {
+
+
     if(cur_state < NUM_STATES){
         (*fsm[cur_state].state_function)();
     }

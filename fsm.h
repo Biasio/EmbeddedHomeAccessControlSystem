@@ -4,6 +4,8 @@
 #include "msp.h"
 #include <stdio.h>
 #include <ti/devices/msp432p4xx/driverlib/driverlib.h>
+#include "display.h"
+#include "joystick.h"
 
 /*
  * This header file defines the states of the system
@@ -43,5 +45,8 @@ void fn_WAIT_RESET_DOOR(void);
 
 // Function to run in the loop
 void FSM_Run(void);
+
+//initialize hardware
+void _hwInit(); //maybe it will substitued by fn_boot()
 
 #endif
