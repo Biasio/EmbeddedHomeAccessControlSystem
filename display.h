@@ -7,9 +7,8 @@
 #include "LcdDriver/Crystalfontz128x128_ST7735.h"
 #include <stdio.h>
 
-#define RECTANGLE_SHIFT 41
-#define UPPER_LIMIT 80
-#define LOWER_LIMIT 40
+#define RECTANGLE_SHIFT_ON_GRID 41
+#define RECTANGLE_SHIFT_ON_MENU 30
 
 typedef struct {
     int x;
@@ -35,15 +34,17 @@ Graphics_Context g_sContext;
 
 void _graphicsInit();
 
-void _hwInit(void);
-
 void draw_grid(void);
-void draw_rectangle(bool new_pos);
+void draw_rectangle(bool new_pos, int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 
-void move_rectangle_right(void);
-void move_rectangle_left(void);
-void move_rectangle_up(void);
-void move_rectangle_down(void);
+void draw_admin_menu(bool screen_number);
+
+void move_rectangle_right(Rectangle* rectangle, int16_t shift);
+void move_rectangle_left(Rectangle* rectangle, int16_t shift);
+void move_rectangle_up(Rectangle* rectangle, int16_t shift);
+void move_rectangle_down(Rectangle* rectangle, int16_t shift);
 void number_selected(void);
+
+void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on);
 
 #endif

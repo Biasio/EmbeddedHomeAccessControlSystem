@@ -5,16 +5,11 @@
 #include <ti/devices/msp432p4xx/driverlib/driverlib.h>
 #include <stdio.h>
 
-//variable used to see if the button is already pressed
-bool button_pressed = 0;
-
-//variable used to move the rectangle in the display after the joystick moved
-bool move_rectangle;
 
 static uint16_t resultsBuffer[2];
 
 //timer used to slow down the adc conversion from the joystick
-const Timer_A_ContinuousModeConfig continuousModeConfig =
+static const Timer_A_ContinuousModeConfig continuousModeConfig =
 {
     TIMER_A_CLOCKSOURCE_SMCLK,          // SMCLK Clock Source
     TIMER_A_CLOCKSOURCE_DIVIDER_64,      // SMCLK/1 = 32.768khz
@@ -24,6 +19,8 @@ const Timer_A_ContinuousModeConfig continuousModeConfig =
 
 void _timerInit();
 void _adcInit();
-void _pushButtonsInit();
+
+uint16_t* get_results_buffer(void);
+bool data_aquired(void);
 
 #endif

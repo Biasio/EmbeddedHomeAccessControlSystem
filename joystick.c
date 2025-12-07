@@ -1,5 +1,7 @@
 #include "joystick.h"
-#include "display.h"
+
+//variable used to move the rectangle in the display after the joystick moved
+bool move_rectangle = 0;
 
 void _timerInit(){
     /* Configuring Continuous Mode */
@@ -49,24 +51,7 @@ void _adcInit(){
         ADC14_toggleConversionTrigger();
 }
 
-void _pushButtonsInit(){
-        //Set pushBUTTONS
-        //S1 = 4.33 = P5.1
-        //S2 = 4.32 = P3.5
-
-        GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P5, GPIO_PIN1);
-        GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P3, GPIO_PIN5);
-
-        //enable interrupts on buttons
-        GPIO_enableInterrupt(GPIO_PORT_P5, GPIO_PIN1);
-        GPIO_enableInterrupt(GPIO_PORT_P3, GPIO_PIN5);
-
-        Interrupt_enableInterrupt(INT_PORT5);
-        Interrupt_enableInterrupt(INT_PORT3);
-
-        Interrupt_enableMaster(); //there must be just one of this instruction
-}
-
+//if the movement is too fast, add a counter for the timer interrupt
 bool update_rectangle_pos(uint64_t status)
 {
     return move_rectangle && (status & ADC_INT1);
@@ -84,11 +69,6 @@ void ADC14_IRQHandler(void)
 {
     uint64_t status;
 
-    const int RIGHT = 16000;
-    const int LEFT = 300;
-    const int UP = 16000;
-    const int DOWN = 100;
-
     status = ADC14_getEnabledInterruptStatus();
     ADC14_clearInterruptFlag(status);
 
@@ -97,68 +77,28 @@ void ADC14_IRQHandler(void)
         resultsBuffer[0] = ADC14_getResult(ADC_MEM0);
         resultsBuffer[1] = ADC14_getResult(ADC_MEM1);
 
-        if(resultsBuffer[0]>RIGHT) {
-            move_rectangle_right();
-        }
-        if(resultsBuffer[0]<LEFT) {
-            move_rectangle_left();
-        }
-        if(resultsBuffer[1]>UP) {
-            move_rectangle_up();
-        }
-        if(resultsBuffer[1]<DOWN) {
-            move_rectangle_down();
-        }
-    }
-    move_rectangle=0;
-}
+        //secondo me questo ISR dovrebbe solo ottenere i dati della posizione del joystick
+        //le funzioni per spostare il rettangolo sulla griglia e nel menu admin dovrebbero essere richiamate da
+        //altre funzioni come ad es. gli stati nella FSM
 
-//S1 = FORWARD BUTTON
-void PORT5_IRQHandler(void)
-{
-    uint_fast16_t status = GPIO_getEnabledInterruptStatus(GPIO_PORT_P5);
-
-    GPIO_clearInterruptFlag(GPIO_PORT_P5, status);
-
-    if(status && GPIO_PIN1){
-        if(!(button_pressed)){
-            button_pressed=1;
-            number_selected();
-        }
-    }
-
-
-
-}
-
-//S2 = BACKWARD BUTTON
-void PORT3_IRQHandler(void)
-{
-
-    uint_fast16_t status = GPIO_getEnabledInterruptStatus(GPIO_PORT_P3);
-
-    GPIO_clearInterruptFlag(GPIO_PORT_P3, status);
-
-    if(status && GPIO_PIN5){
-
+        //move_on_grid(resultsBuffer[0], resultsBuffer[1]);
+        move_rectangle=0;
     }
 
 }
 
-int main(void)
-{
-    _hwInit();
-    draw_grid();
-    _adcInit();
-    _timerInit();
-    _pushButtonsInit();
-
-    while(1){
-        PCM_gotoLPM0();
-        if(GPIO_PORT_P5 && GPIO_PIN1){ //button released
-                button_pressed=0;
-            }
-
-    }
+// 2. FUNZIONE GETTER PUBBLICA:
+// Restituisce un puntatore all'array statico.
+uint16_t* get_results_buffer(void) {
+    // Restituendo il puntatore, permetti al chiamante di leggere e scrivere
+    // l'array, ma l'array stesso rimane definito staticamente in questo file.
+    return resultsBuffer;
 }
+
+bool data_aquired(void){
+    return move_rectangle;
+}
+
+
+
 

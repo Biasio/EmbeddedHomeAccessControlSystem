@@ -1,7 +1,13 @@
 #include "display.h"
 
 //define first position for the rectangle used to select the numbers
-Rectangle sel_rectangle = {6, 39, 6, 39};
+Rectangle sel_rectangle_on_grid = {6, 39, 6, 39};
+
+//define rectangle for selection in admin menu
+Rectangle sel_rectangle_on_admin_menu = {2, 126, 37, 67};
+
+bool move_on_menu = 0; //used to decide the color of the rectangle in base of the type of screen (grid or menu)
+bool first_screen = 1; //in the admin menu you are in the first screen (first 3 entries)
 
 //these points are used to select the numbers on the grid
 //at each point corresponds a number
@@ -42,7 +48,7 @@ void draw_grid(void)
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
     int i;
     //the lines of the grid are shifted of the same as when the rectangle is shifted
-    for(i=2; i<=128; i+=RECTANGLE_SHIFT){
+    for(i=2; i<=128; i+=RECTANGLE_SHIFT_ON_GRID){
         Graphics_drawLineH(&g_sContext, 2, 125, i);
         Graphics_drawLineV(&g_sContext, i, 2, 125);
     }
@@ -51,8 +57,8 @@ void draw_grid(void)
     char string[1];
     int x,y;
     i=1;
-    for(y=21; y<=106; y+=RECTANGLE_SHIFT){
-        for(x=24; x<=106; x+=RECTANGLE_SHIFT){
+    for(y=21; y<=106; y+=RECTANGLE_SHIFT_ON_GRID){
+        for(x=24; x<=106; x+=RECTANGLE_SHIFT_ON_GRID){
             sprintf(string, "%d", i++);
             Graphics_drawStringCentered(&g_sContext, (int8_t *) string,
                                         AUTO_STRING_LENGTH,
@@ -61,79 +67,134 @@ void draw_grid(void)
         }
     }
     //draw rectangle in his inital position (NUMBER 1)
-    draw_rectangle(1);
+    draw_rectangle(1, sel_rectangle_on_grid.pos_x1, sel_rectangle_on_grid.pos_y1, sel_rectangle_on_grid.pos_x2, sel_rectangle_on_grid.pos_y2);
 
 }
 
 
-void draw_rectangle(bool new_pos)
+void draw_rectangle(bool new_pos, int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 {
-    //if new_pos=0 cancel the old rectangle
+    //if move_on_menu=1 and new_pos=0 cancel the old rectangle on menu
+    //if move_on_menu=0 and new_pos=0 cancel the old rectangle on grid
     //if new_pos=1 draw the rectangle in the updated position
-    if(!new_pos) Graphics_setForegroundColor(&g_sContext, ClrWhite);
+    if(move_on_menu & !new_pos) Graphics_setForegroundColor(&g_sContext, ClrBlack);
+    else if(!move_on_menu & !new_pos) Graphics_setForegroundColor(&g_sContext, ClrWhite);
     else Graphics_setForegroundColor(&g_sContext, ClrRed);
 
-    const Graphics_Rectangle rectangle = {sel_rectangle.pos_x1,
-                                          sel_rectangle.pos_y1,
-                                          sel_rectangle.pos_x2,
-                                          sel_rectangle.pos_y2};
+    const Graphics_Rectangle rectangle = {x1, y1, x2, y2};
     Graphics_drawRectangle(&g_sContext, &rectangle);
 }
 
-void move_rectangle_right(void){
-    if(sel_rectangle.pos_x1<UPPER_LIMIT)
-    {
-        draw_rectangle(0); 
-        sel_rectangle.pos_x1 += RECTANGLE_SHIFT;
-        sel_rectangle.pos_x2 += RECTANGLE_SHIFT;
 
-        draw_rectangle(1); 
+//le seguenti funzioni di spostamento del rettangolo dovrebbero funzionare
+//l'unica cosa da vedere sono i limiti (UPPER E LOWER), se mai li sposto in move_on_grid()
+
+void move_rectangle_right(Rectangle* rectangle, int16_t shift){
+
+        draw_rectangle(0, rectangle->pos_x1, rectangle->pos_y1, rectangle->pos_x2, rectangle->pos_y2);
+
+        rectangle->pos_x1 += shift;
+        rectangle->pos_x2 += shift;
+
+        draw_rectangle(1, rectangle->pos_x1, rectangle->pos_y1, rectangle->pos_x2, rectangle->pos_y2);
+}
+
+void move_rectangle_left(Rectangle* rectangle, int16_t shift){
+
+        draw_rectangle(0, rectangle->pos_x1, rectangle->pos_y1, rectangle->pos_x2, rectangle->pos_y2);
+
+        rectangle->pos_x1 -= shift;
+        rectangle->pos_x2 -= shift;
+
+        draw_rectangle(1, rectangle->pos_x1, rectangle->pos_y1, rectangle->pos_x2, rectangle->pos_y2);
+}
+
+void move_rectangle_up(Rectangle* rectangle, int16_t shift){
+
+        draw_rectangle(0, rectangle->pos_x1, rectangle->pos_y1, rectangle->pos_x2, rectangle->pos_y2);
+
+        rectangle->pos_y1 -= shift;
+        rectangle->pos_y2 -= shift;
+
+        draw_rectangle(1, rectangle->pos_x1, rectangle->pos_y1, rectangle->pos_x2, rectangle->pos_y2);
+}
+
+void move_rectangle_down(Rectangle* rectangle, int16_t shift){
+
+        draw_rectangle(0, rectangle->pos_x1, rectangle->pos_y1, rectangle->pos_x2, rectangle->pos_y2);
+
+        rectangle->pos_y1 += shift;
+        rectangle->pos_y2 += shift;
+
+        draw_rectangle(1, rectangle->pos_x1, rectangle->pos_y1, rectangle->pos_x2, rectangle->pos_y2);
+}
+
+void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on){
+
+    const int RIGHT = 16000;
+    const int LEFT = 300;
+    const int UP = 16000;
+    const int DOWN = 100;
+
+    const int UPPER_LIMIT = 80;
+    const int LOWER_LIMIT = 40;
+
+    //move rectangle on grid
+    if(grid_on){
+       move_on_menu = 0;
+
+       if(x>RIGHT) {
+           if(sel_rectangle_on_grid.pos_x1>UPPER_LIMIT) {
+               move_rectangle_right(&sel_rectangle_on_grid, RECTANGLE_SHIFT_ON_GRID);
+           }
+       }
+       if(x<LEFT) {
+           if(sel_rectangle_on_grid.pos_x1>LOWER_LIMIT) {
+               move_rectangle_left(&sel_rectangle_on_grid, RECTANGLE_SHIFT_ON_GRID);
+           }
+       }
+       if(y>UP) {
+           if(sel_rectangle_on_grid.pos_x1>LOWER_LIMIT){
+               move_rectangle_up(&sel_rectangle_on_grid, RECTANGLE_SHIFT_ON_GRID);
+           }
+       }
+       if(y<DOWN) {
+           if(sel_rectangle_on_grid.pos_y1<UPPER_LIMIT) {
+               move_rectangle_down(&sel_rectangle_on_grid, RECTANGLE_SHIFT_ON_GRID);
+           }
+       }
+    }
+    else{ //move rectangle on menu
+       move_on_menu = 1;
+       if(y>UP) {
+          if(sel_rectangle_on_admin_menu.pos_y1<LOWER_LIMIT && !first_screen) {
+              first_screen = 1; //change page
+              draw_admin_menu(first_screen);
+          }
+          if(sel_rectangle_on_admin_menu.pos_y1>LOWER_LIMIT) {
+            move_rectangle_up(&sel_rectangle_on_admin_menu, RECTANGLE_SHIFT_ON_MENU);
+          }
+       }
+       if(y<DOWN) {
+
+           if(sel_rectangle_on_admin_menu.pos_y1>UPPER_LIMIT+10 && first_screen) {
+               first_screen = 0; //change page
+               draw_admin_menu(first_screen);
+           }
+           if(sel_rectangle_on_admin_menu.pos_y1<UPPER_LIMIT) {
+              move_rectangle_down(&sel_rectangle_on_admin_menu, RECTANGLE_SHIFT_ON_MENU);
+          }
+
+       }
     }
 }
 
-
-
-void move_rectangle_left(void){
-    if(sel_rectangle.pos_x1>LOWER_LIMIT)
-    {
-        draw_rectangle(0); 
-
-        sel_rectangle.pos_x1 -= RECTANGLE_SHIFT;
-        sel_rectangle.pos_x2 -= RECTANGLE_SHIFT;
-
-        draw_rectangle(1); 
-    }
-}
-
-void move_rectangle_up(void){
-    if(sel_rectangle.pos_y1>LOWER_LIMIT)
-    {
-        draw_rectangle(0); 
-
-        sel_rectangle.pos_y1 -= RECTANGLE_SHIFT;
-        sel_rectangle.pos_y2 -= RECTANGLE_SHIFT;
-
-        draw_rectangle(1); 
-    }
-}
-
-void move_rectangle_down(void){
-    if(sel_rectangle.pos_y1<UPPER_LIMIT)
-    {
-        draw_rectangle(0); 
-
-        sel_rectangle.pos_y1 += RECTANGLE_SHIFT;
-        sel_rectangle.pos_y2 += RECTANGLE_SHIFT;
-
-        draw_rectangle(1); 
-    }
-}
 
 void number_selected(void){
-    const Graphics_Rectangle rect = {sel_rectangle.pos_x1,
-                                     sel_rectangle.pos_y1,
-                                     sel_rectangle.pos_x2,
-                                     sel_rectangle.pos_y2};
+    const Graphics_Rectangle rect = {sel_rectangle_on_grid.pos_x1,
+                                     sel_rectangle_on_grid.pos_y1,
+                                     sel_rectangle_on_grid.pos_x2,
+                                     sel_rectangle_on_grid.pos_y2};
 
     int i;
     for (i = NUM1; i < NUM_POINTS; i++)
@@ -162,44 +223,98 @@ void number_selected(void){
             sprintf(string, "%d", i+1);
             Graphics_drawStringCentered(&g_sContext, (int8_t *) string,
                                         AUTO_STRING_LENGTH,
-                                        sel_rectangle.pos_x1+18, sel_rectangle.pos_y1+15,
+                                        sel_rectangle_on_grid.pos_x1+18, sel_rectangle_on_grid.pos_y1+15,
                                         OPAQUE_TEXT);
 
 
             Graphics_setForegroundColor(&g_sContext, ClrRed);
             Graphics_drawRectangle(&g_sContext, &rect);
 
-            // Se vuoi fermarti alla prima corrispondenza:
+            // Stop at the right number
                 break;
         }
     }
 }
 
+void draw_admin_menu(bool screen_number){
 
-void _hwInit(void)
-{
-    /* Halting WDT and disabling master interrupts */
-    WDT_A_holdTimer();
-    Interrupt_disableMaster();
+    Graphics_clearDisplay(&g_sContext);
 
-    /* Set the core voltage level to VCORE1 */
-    PCM_setCoreVoltageLevel(PCM_VCORE1);
+    int32_t x_string = 64;
+    int32_t y_string = 20;
+    int32_t y_line = 37;
+    int32_t start_v_line = y_line;
+    int32_t start_x_line = 2;
+    int32_t end_x_line = 126;
 
-    /* Set 2 flash wait states for Flash bank 0 and 1*/
-    FlashCtl_setWaitState(FLASH_BANK0, 2);
-    FlashCtl_setWaitState(FLASH_BANK1, 2);
+    int start, end;
 
-    /* Initializes Clock System */
-    CS_setDCOCenteredFrequency(CS_DCO_FREQUENCY_48);
-    CS_initClockSignal(CS_MCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
-    CS_initClockSignal(CS_HSMCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
-    CS_initClockSignal(CS_SMCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
-    CS_initClockSignal(CS_ACLK, CS_REFOCLK_SELECT, CS_CLOCK_DIVIDER_1);
+    Graphics_setForegroundColor(&g_sContext, ClrBlack);
+    GrContextFontSet(&g_sContext, &g_sFontCmss12);
+     //in case of other pages, use an int to count the number of pages
+     if(screen_number){ //first page
+         start = 0;
+         end = 3;
 
-    _graphicsInit();
+         Graphics_drawStringCentered(&g_sContext, (int8_t *) "Page 1/2",
+                                        AUTO_STRING_LENGTH,
+                                        23, 5,
+                                        OPAQUE_TEXT);
+     }
+     else{   //second page
+         start = 3;
+         end = 6;
+
+         Graphics_drawStringCentered(&g_sContext, (int8_t *) "Page 2/2",
+                                     AUTO_STRING_LENGTH,
+                                     23, 5,
+                                     OPAQUE_TEXT);
+     }
+
+    char* strings[] = {"LAST ACCESS LOG",
+                       "SETUP PIN",
+                       "WIFI PIN",
+                       "FACTORY RESET",
+                       "UNLOCK DOOR",
+                       "BLOCK PIN INSERT"};
+
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_setForegroundColor(&g_sContext, ClrRed);
+
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "ADMIN MENU",
+                                        AUTO_STRING_LENGTH,
+                                        x_string, y_string,
+                                        OPAQUE_TEXT);
+    y_string+=30;
+
+    Graphics_setForegroundColor(&g_sContext, ClrBlack);
+
+
+
+    int i;
+    for(i=start; i<end; i++){
+        Graphics_drawStringCentered(&g_sContext, (int8_t *) strings[i],
+                                    AUTO_STRING_LENGTH,
+                                    x_string, y_string,
+                                    OPAQUE_TEXT);
+        Graphics_drawLineH(&g_sContext, start_x_line, end_x_line, y_line);
+        y_string+=30;
+        y_line+=30;
+    }
+
+    Graphics_drawLineH(&g_sContext, start_x_line, end_x_line, y_line);
+
+    Graphics_drawLineV(&g_sContext, start_x_line, start_v_line, y_line);
+    Graphics_drawLineV(&g_sContext, end_x_line, start_v_line, y_line);
+
+    sel_rectangle_on_admin_menu.pos_x1 = start_x_line;
+    sel_rectangle_on_admin_menu.pos_y1 = start_v_line;
+    sel_rectangle_on_admin_menu.pos_x2 = end_x_line;
+    sel_rectangle_on_admin_menu.pos_y2 = start_v_line+30;
+
+    draw_rectangle(1, start_x_line, start_v_line, end_x_line, start_v_line+30);
+    //draw_rectangle(1, sel_rectangle_on_admin_menu.pos_x1, sel_rectangle_on_admin_menu.pos_y1, sel_rectangle_on_admin_menu.pos_x2, sel_rectangle_on_admin_menu.pos_y2);
 
 }
-
-
 
 

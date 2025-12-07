@@ -4,8 +4,6 @@
 #include "msp.h"
 #include <stdio.h>
 #include <ti/devices/msp432p4xx/driverlib/driverlib.h>
-#include "display.h"
-#include "joystick.h"
 
 /*
  * This header file defines the states of the system
