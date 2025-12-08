@@ -37,10 +37,12 @@ int main(void)
 
     _hwInit();
 
+    bool first_screen = 1;
+
     //display
     _graphicsInit();
     //draw_grid();
-    draw_admin_menu(1); //draw first screen
+    draw_admin_menu(first_screen); //draw first screen
 
     //joystick
     _adcInit();
@@ -62,6 +64,24 @@ int main(void)
 
         if(data_aquired()){
             move_rectangle_on_display(current_results[0], current_results[1], move_on_menu);
+
+        }
+
+        if(buttonA_pressed){
+            buttonA_pressed=0;
+            //printf("A\n");
+
+            function_selected();
+
+        }
+        if(buttonB_pressed){
+            buttonB_pressed=0;
+            //printf("B\n");
+
+            //si potrebbe far si che se torno indietro dalla seconda pagina
+            //torni nella seconda pagina
+            draw_admin_menu(first_screen);
+
         }
 
     }

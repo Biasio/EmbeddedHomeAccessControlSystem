@@ -6,7 +6,9 @@
 #include <stdio.h>
 
 
-static uint16_t resultsBuffer[2];
+//static uint16_t resultsBuffer[2]; //visibile only in joystick.c
+extern volatile uint16_t resultsBuffer[2]; //visibile in other files
+
 
 //timer used to slow down the adc conversion from the joystick
 static const Timer_A_ContinuousModeConfig continuousModeConfig =

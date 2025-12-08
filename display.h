@@ -22,11 +22,27 @@ typedef struct {
     int pos_y2;
 }Rectangle;
 
+//Functions raggruppa le funzioni del menu admin
+//quando si preme su una di esse si attiva un solo valore
+typedef struct {
+    bool last_access_log;
+    bool pin_setup;
+    bool wifi_setup;
+    bool factory_reset;
+    bool unnlock_door;
+    bool block_pin;
+}Functions;
+
 
 //used to access the array GRID_POINTS easily
 typedef enum {
     NUM1, NUM2, NUM3, NUM4, NUM5, NUM6, NUM7, NUM8, NUM9, NUM_POINTS
 } PointIndex;
+
+//functions inside admin menu
+typedef enum {
+    FUNCTION_NONE, LAST_ACCESS_LOG, SETUP_PIN, WIFI_SETUP, FACTORY_RESET, UNLOCK_DOOR, BLOCK_PIN, NUM_FUNCTION
+} enum_menu_functions;
 
 
 //variable used to define the display
@@ -35,16 +51,18 @@ Graphics_Context g_sContext;
 void _graphicsInit();
 
 void draw_grid(void);
-void draw_rectangle(bool new_pos, int16_t x1, int16_t y1, int16_t x2, int16_t y2);
-
 void draw_admin_menu(bool screen_number);
 
-void move_rectangle_right(Rectangle* rectangle, int16_t shift);
-void move_rectangle_left(Rectangle* rectangle, int16_t shift);
-void move_rectangle_up(Rectangle* rectangle, int16_t shift);
-void move_rectangle_down(Rectangle* rectangle, int16_t shift);
 void number_selected(void);
+void function_selected(void);
 
 void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on);
+
+void menu_last_access_log(void);
+void menu_setup_pin(void);
+void menu_setup_wifi(void);
+void menu_factory_reset(void);
+void menu_unlock_door(void);
+void menu_block_pin(void);
 
 #endif

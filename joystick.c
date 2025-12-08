@@ -1,7 +1,13 @@
 #include "joystick.h"
 
+volatile uint16_t resultsBuffer[2];
+
 //variable used to move the rectangle in the display after the joystick moved
 bool move_rectangle = 0;
+
+int timer_int_counter = 0;
+
+const int NUM_INTERRUPT = 4;
 
 void _timerInit(){
     /* Configuring Continuous Mode */
@@ -61,8 +67,10 @@ void TA0_N_IRQHandler(void)
 {
     /* clear the timer pending interrupt flag */
     Timer_A_clearInterruptFlag(TIMER_A0_BASE);
-
-    move_rectangle=1;
+    if(++timer_int_counter==NUM_INTERRUPT){
+        timer_int_counter=0;
+        move_rectangle=1;
+    }
 }
 
 void ADC14_IRQHandler(void)

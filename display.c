@@ -6,6 +6,8 @@ Rectangle sel_rectangle_on_grid = {6, 39, 6, 39};
 //define rectangle for selection in admin menu
 Rectangle sel_rectangle_on_admin_menu = {2, 126, 37, 67};
 
+Functions menu_functions = {0, 0, 0, 0, 0, 0}; //all functions are disabled
+
 bool move_on_menu = 0; //used to decide the color of the rectangle in base of the type of screen (grid or menu)
 bool first_screen = 1; //in the admin menu you are in the first screen (first 3 entries)
 
@@ -24,6 +26,13 @@ const Point GRID_POINTS[] = {
      { 10, 90 },
      { 50, 90 },
      { 90, 90 }
+};
+
+const Point MENU_POINTS[] = {
+     // P1 | P2 | P3
+     { 50, 50 },
+     { 50, 80 },
+     { 50, 110 },
 };
 
 void _graphicsInit()
@@ -45,6 +54,7 @@ void _graphicsInit()
 
 void draw_grid(void)
 {
+    GrContextFontSet(&g_sContext, &g_sFontCmss36);
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
     int i;
     //the lines of the grid are shifted of the same as when the rectangle is shifted
@@ -68,6 +78,91 @@ void draw_grid(void)
     }
     //draw rectangle in his inital position (NUMBER 1)
     draw_rectangle(1, sel_rectangle_on_grid.pos_x1, sel_rectangle_on_grid.pos_y1, sel_rectangle_on_grid.pos_x2, sel_rectangle_on_grid.pos_y2);
+}
+
+void draw_admin_menu(bool screen_number){
+
+    Graphics_clearDisplay(&g_sContext);
+
+    int32_t x_string = 64;
+    int32_t y_string = 20;
+    int32_t y_line = 37;
+    int32_t start_v_line = y_line;
+    int32_t start_x_line = 2;
+    int32_t end_x_line = 126;
+
+    int start, end;
+
+    Graphics_setForegroundColor(&g_sContext, ClrBlack);
+    GrContextFontSet(&g_sContext, &g_sFontCmss12);
+     //in case of other pages, use an int to count the number of pages
+     if(screen_number){ //first page
+
+         first_screen=1;
+
+         start = 0;
+         end = 3;
+
+         Graphics_drawStringCentered(&g_sContext, (int8_t *) "Page 1/2",
+                                        AUTO_STRING_LENGTH,
+                                        23, 5,
+                                        OPAQUE_TEXT);
+     }
+     else{   //second page
+
+         first_screen=0;
+
+         start = 3;
+         end = 6;
+
+         Graphics_drawStringCentered(&g_sContext, (int8_t *) "Page 2/2",
+                                     AUTO_STRING_LENGTH,
+                                     23, 5,
+                                     OPAQUE_TEXT);
+     }
+
+    char* strings[] = {"LAST ACCESS LOG",
+                       "SETUP PIN",
+                       "SETUP WIFI",
+                       "FACTORY RESET",
+                       "UNLOCK DOOR",
+                       "BLOCK PIN INSERT"};
+
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_setForegroundColor(&g_sContext, ClrRed);
+
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "ADMIN MENU",
+                                        AUTO_STRING_LENGTH,
+                                        x_string, y_string,
+                                        OPAQUE_TEXT);
+    y_string+=30;
+
+    Graphics_setForegroundColor(&g_sContext, ClrBlack);
+
+
+
+    int i;
+    for(i=start; i<end; i++){
+        Graphics_drawStringCentered(&g_sContext, (int8_t *) strings[i],
+                                    AUTO_STRING_LENGTH,
+                                    x_string, y_string,
+                                    OPAQUE_TEXT);
+        Graphics_drawLineH(&g_sContext, start_x_line, end_x_line, y_line);
+        y_string+=30;
+        y_line+=30;
+    }
+
+    Graphics_drawLineH(&g_sContext, start_x_line, end_x_line, y_line);
+
+    Graphics_drawLineV(&g_sContext, start_x_line, start_v_line, y_line);
+    Graphics_drawLineV(&g_sContext, end_x_line, start_v_line, y_line);
+
+    sel_rectangle_on_admin_menu.pos_x1 = start_x_line;
+    sel_rectangle_on_admin_menu.pos_y1 = start_v_line;
+    sel_rectangle_on_admin_menu.pos_x2 = end_x_line;
+    sel_rectangle_on_admin_menu.pos_y2 = start_v_line+30;
+
+    draw_rectangle(1, sel_rectangle_on_admin_menu.pos_x1, sel_rectangle_on_admin_menu.pos_y1, sel_rectangle_on_admin_menu.pos_x2, sel_rectangle_on_admin_menu.pos_y2);
 
 }
 
@@ -236,85 +331,206 @@ void number_selected(void){
     }
 }
 
-void draw_admin_menu(bool screen_number){
+//select function on menu
+void function_selected(void){
+    const Graphics_Rectangle rect = {sel_rectangle_on_admin_menu.pos_x1,
+                                     sel_rectangle_on_admin_menu.pos_y1,
+                                     sel_rectangle_on_admin_menu.pos_x2,
+                                     sel_rectangle_on_admin_menu.pos_y2};
 
-    Graphics_clearDisplay(&g_sContext);
+    if(first_screen){ //FIRST SCREEN
+        int i;
+            for (i = 0; i <= 2; i++) //only 3 points for screen
+            {
+                // Verifica se il punto corrente (MENU_POINTS[i]) e' all'interno del rettangolo 'rect'
+                if (Graphics_isPointWithinRectangle(
+                        &rect,
+                        MENU_POINTS[i].x,
+                        MENU_POINTS[i].y))
+                {
+                    menu_functions.last_access_log = false;
+                    menu_functions.pin_setup       = false;
+                    menu_functions.wifi_setup      = false;
+                    menu_functions.factory_reset   = false;
+                    menu_functions.unnlock_door    = false;
+                    menu_functions.block_pin       = false;
 
+                    switch(i){
+                    case 0:
+                        printf("Last access log \n", i);
+                        menu_functions.last_access_log = 1;
+
+                        menu_last_access_log();
+
+                        break;
+                    case 1:
+                        printf("pin_setup \n", i);
+                        menu_functions.pin_setup = 1;
+
+                        menu_setup_pin();
+
+                        break;
+                    case 2:
+                        printf("wifi_setup \n", i);
+                        menu_functions.wifi_setup = 1;
+
+                        menu_setup_wifi();
+
+                        break;
+                    default:
+                        printf("Nothing \n", i);
+                    }
+
+                }
+            }
+
+    }else{ //SECOND SCREEN
+        int i;
+            for (i = 0; i <= 2; i++)
+            {
+                // Verifica se il punto corrente (MENU_POINTS[i]) e' all'interno del rettangolo 'rect'
+                if (Graphics_isPointWithinRectangle(
+                        &rect,
+                        MENU_POINTS[i].x,
+                        MENU_POINTS[i].y))
+                {
+                    menu_functions.last_access_log = false;
+                    menu_functions.pin_setup       = false;
+                    menu_functions.wifi_setup      = false;
+                    menu_functions.factory_reset   = false;
+                    menu_functions.unnlock_door    = false;
+                    menu_functions.block_pin       = false;
+
+                    switch(i){
+                    case 0:
+                        printf("factory_reset \n", i);
+                        menu_functions.factory_reset = 1;
+
+                        menu_factory_reset();
+
+                        break;
+                    case 1:
+                        printf("unnlock_door \n", i);
+                        menu_functions.unnlock_door = 1;
+
+                        menu_unlock_door();
+
+                        break;
+                    case 2:
+                        printf("block_pin \n", i);
+                        menu_functions.block_pin = 1;
+
+                        menu_block_pin();
+
+                        break;
+                    default:
+                        printf("Nothing \n", i);
+                    }
+                }
+            }
+    }
+
+
+}
+
+
+
+void menu_last_access_log(void){
     int32_t x_string = 64;
     int32_t y_string = 20;
-    int32_t y_line = 37;
-    int32_t start_v_line = y_line;
-    int32_t start_x_line = 2;
-    int32_t end_x_line = 126;
 
-    int start, end;
-
-    Graphics_setForegroundColor(&g_sContext, ClrBlack);
-    GrContextFontSet(&g_sContext, &g_sFontCmss12);
-     //in case of other pages, use an int to count the number of pages
-     if(screen_number){ //first page
-         start = 0;
-         end = 3;
-
-         Graphics_drawStringCentered(&g_sContext, (int8_t *) "Page 1/2",
-                                        AUTO_STRING_LENGTH,
-                                        23, 5,
-                                        OPAQUE_TEXT);
-     }
-     else{   //second page
-         start = 3;
-         end = 6;
-
-         Graphics_drawStringCentered(&g_sContext, (int8_t *) "Page 2/2",
-                                     AUTO_STRING_LENGTH,
-                                     23, 5,
-                                     OPAQUE_TEXT);
-     }
-
-    char* strings[] = {"LAST ACCESS LOG",
-                       "SETUP PIN",
-                       "WIFI PIN",
-                       "FACTORY RESET",
-                       "UNLOCK DOOR",
-                       "BLOCK PIN INSERT"};
+    Graphics_clearDisplay(&g_sContext);
 
     GrContextFontSet(&g_sContext, &g_sFontCmss16);
     Graphics_setForegroundColor(&g_sContext, ClrRed);
 
-    Graphics_drawStringCentered(&g_sContext, (int8_t *) "ADMIN MENU",
-                                        AUTO_STRING_LENGTH,
-                                        x_string, y_string,
-                                        OPAQUE_TEXT);
-    y_string+=30;
-
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "LAST ACCESS LOG",
+                                AUTO_STRING_LENGTH,
+                                x_string, y_string,
+                                OPAQUE_TEXT);
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
-
-
-
-    int i;
-    for(i=start; i<end; i++){
-        Graphics_drawStringCentered(&g_sContext, (int8_t *) strings[i],
-                                    AUTO_STRING_LENGTH,
-                                    x_string, y_string,
-                                    OPAQUE_TEXT);
-        Graphics_drawLineH(&g_sContext, start_x_line, end_x_line, y_line);
-        y_string+=30;
-        y_line+=30;
-    }
-
-    Graphics_drawLineH(&g_sContext, start_x_line, end_x_line, y_line);
-
-    Graphics_drawLineV(&g_sContext, start_x_line, start_v_line, y_line);
-    Graphics_drawLineV(&g_sContext, end_x_line, start_v_line, y_line);
-
-    sel_rectangle_on_admin_menu.pos_x1 = start_x_line;
-    sel_rectangle_on_admin_menu.pos_y1 = start_v_line;
-    sel_rectangle_on_admin_menu.pos_x2 = end_x_line;
-    sel_rectangle_on_admin_menu.pos_y2 = start_v_line+30;
-
-    draw_rectangle(1, start_x_line, start_v_line, end_x_line, start_v_line+30);
-    //draw_rectangle(1, sel_rectangle_on_admin_menu.pos_x1, sel_rectangle_on_admin_menu.pos_y1, sel_rectangle_on_admin_menu.pos_x2, sel_rectangle_on_admin_menu.pos_y2);
-
 }
 
+void menu_setup_pin(void){
+    int32_t x_string = 64;
+    int32_t y_string = 20;
+
+    Graphics_clearDisplay(&g_sContext);
+
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_setForegroundColor(&g_sContext, ClrRed);
+/*
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "PIN SETUP",
+                                AUTO_STRING_LENGTH,
+                                x_string, y_string,
+                                OPAQUE_TEXT);
+*/
+    Graphics_setForegroundColor(&g_sContext, ClrBlack);
+x
+    draw_grid();
+}
+
+void menu_setup_wifi(void){
+    int32_t x_string = 64;
+    int32_t y_string = 20;
+
+    Graphics_clearDisplay(&g_sContext);
+
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_setForegroundColor(&g_sContext, ClrRed);
+
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "SETUP WIFI",
+                                AUTO_STRING_LENGTH,
+                                x_string, y_string,
+                                OPAQUE_TEXT);
+    Graphics_setForegroundColor(&g_sContext, ClrBlack);
+}
+
+void menu_factory_reset(void){
+    int32_t x_string = 64;
+    int32_t y_string = 20;
+
+    Graphics_clearDisplay(&g_sContext);
+
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_setForegroundColor(&g_sContext, ClrRed);
+
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "FACTORY RESET",
+                                AUTO_STRING_LENGTH,
+                                x_string, y_string,
+                                OPAQUE_TEXT);
+    Graphics_setForegroundColor(&g_sContext, ClrBlack);
+}
+
+void menu_unlock_door(void){
+    int32_t x_string = 64;
+    int32_t y_string = 20;
+
+    Graphics_clearDisplay(&g_sContext);
+
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_setForegroundColor(&g_sContext, ClrRed);
+
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "UNLOCK DOOR",
+                                AUTO_STRING_LENGTH,
+                                x_string, y_string,
+                                OPAQUE_TEXT);
+    Graphics_setForegroundColor(&g_sContext, ClrBlack);
+}
+
+void menu_block_pin(void){
+    int32_t x_string = 64;
+    int32_t y_string = 20;
+
+    Graphics_clearDisplay(&g_sContext);
+
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_setForegroundColor(&g_sContext, ClrRed);
+
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "BLOCK PIN",
+                                AUTO_STRING_LENGTH,
+                                x_string, y_string,
+                                OPAQUE_TEXT);
+    Graphics_setForegroundColor(&g_sContext, ClrBlack);
+}
 
