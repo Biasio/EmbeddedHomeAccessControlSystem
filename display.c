@@ -3,11 +3,12 @@
 //define first position for the rectangle used to select the numbers
 Rectangle sel_rectangle_on_grid = {22, 48, 32, 58};
 
-//define rectangle for selection in admin menu
+//define first position of rectangle for selection in admin menu
 Rectangle sel_rectangle_on_admin_menu = {2, 126, 37, 67};
 
 bool move_on_menu = 0; //used to decide the color of the rectangle in base of the type of screen (grid or menu)
 bool first_screen = 1; //in the admin menu you are in the first screen (first 3 entries)
+
 
 //these points are used to select the numbers on the grid
 //at each point corresponds a number
@@ -26,6 +27,7 @@ const Point GRID_POINTS[] = {
      { 85, 105 }
 };
 
+// Points used to select a function in admin menu
 const Point MENU_POINTS[] = {
      // P1 | P2 | P3
      { 50, 50 },
@@ -33,6 +35,15 @@ const Point MENU_POINTS[] = {
      { 50, 110 },
 };
 
+// Array that stores the functions used
+char* function_strings[] = {"LAST ACCESS LOG",
+                           "SETUP PIN",
+                           "SETUP WIFI",
+                           "FACTORY RESET",
+                           "UNLOCK DOOR",
+                           "BLOCK PIN INSERT"};
+
+// Initialize display
 void _graphicsInit()
 {
     /* Initializes display */
@@ -49,13 +60,14 @@ void _graphicsInit()
     Graphics_clearDisplay(&g_sContext);
 }
 
-
+// Draw grid of numbers
 void draw_grid(void)
 {
     Graphics_clearDisplay(&g_sContext);
     GrContextFontSet(&g_sContext, &g_sFontCmss24);
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
 
+    // Initial position to draw the lines
     int start_x = 20;
     int end_x = 110;
 
@@ -89,7 +101,8 @@ void draw_grid(void)
     draw_rectangle(1, sel_rectangle_on_grid.pos_x1, sel_rectangle_on_grid.pos_y1, sel_rectangle_on_grid.pos_x2, sel_rectangle_on_grid.pos_y2);
 
 
-    //draw number selected
+    //show on the upper part of the display the number selected
+    //initially they are empty
     GrContextFontSet(&g_sContext, &g_sFontCmss16);
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
 
@@ -100,6 +113,7 @@ void draw_grid(void)
 
 }
 
+// Draw the admin menu
 void draw_admin_menu(bool screen_number){
 
     Graphics_clearDisplay(&g_sContext);
@@ -115,7 +129,7 @@ void draw_admin_menu(bool screen_number){
 
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
     GrContextFontSet(&g_sContext, &g_sFontCmss12);
-     //in case of other pages, use an int to count the number of pages
+     //in case of more than two pages, use an int to count the number of pages
      if(screen_number){ //first page
 
          first_screen=1;
@@ -141,13 +155,6 @@ void draw_admin_menu(bool screen_number){
                                      OPAQUE_TEXT);
      }
 
-    char* strings[] = {"LAST ACCESS LOG",
-                       "SETUP PIN",
-                       "SETUP WIFI",
-                       "FACTORY RESET",
-                       "UNLOCK DOOR",
-                       "BLOCK PIN INSERT"};
-
     GrContextFontSet(&g_sContext, &g_sFontCmss16);
     Graphics_setForegroundColor(&g_sContext, ClrRed);
 
@@ -163,7 +170,7 @@ void draw_admin_menu(bool screen_number){
 
     int i;
     for(i=start; i<end; i++){
-        Graphics_drawStringCentered(&g_sContext, (int8_t *) strings[i],
+        Graphics_drawStringCentered(&g_sContext, (int8_t *) function_strings[i],
                                     AUTO_STRING_LENGTH,
                                     x_string, y_string,
                                     OPAQUE_TEXT);
@@ -200,9 +207,6 @@ void draw_rectangle(bool new_pos, int16_t x1, int16_t y1, int16_t x2, int16_t y2
     Graphics_drawRectangle(&g_sContext, &rectangle);
 }
 
-
-//le seguenti funzioni di spostamento del rettangolo dovrebbero funzionare
-//l'unica cosa da vedere sono i limiti (UPPER E LOWER), se mai li sposto in move_on_grid()
 
 void move_rectangle_right(Rectangle* rectangle, int16_t shift){
 
@@ -281,26 +285,36 @@ void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on){
     }
     else{ //move rectangle on menu
        move_on_menu = 1;
+
+       //add blink of rectangle on current function
+       //draw_rectangle(1, rectangle->pos_x1, rectangle->pos_y1, rectangle->pos_x2, rectangle->pos_y2);
+
+
+       //up and down to scrool in the menu
        if(y>UP) {
-          if(sel_rectangle_on_admin_menu.pos_y1<LOWER_LIMIT && !first_screen) {
-              first_screen = 1; //change page
-              draw_admin_menu(first_screen);
-          }
           if(sel_rectangle_on_admin_menu.pos_y1>LOWER_LIMIT) {
             move_rectangle_up(&sel_rectangle_on_admin_menu, RECTANGLE_SHIFT_ON_MENU);
           }
        }
        if(y<DOWN) {
-
-           if(sel_rectangle_on_admin_menu.pos_y1>UPPER_LIMIT+10 && first_screen) {
-               first_screen = 0; //change page
-               draw_admin_menu(first_screen);
-           }
            if(sel_rectangle_on_admin_menu.pos_y1<UPPER_LIMIT) {
               move_rectangle_down(&sel_rectangle_on_admin_menu, RECTANGLE_SHIFT_ON_MENU);
           }
-
        }
+
+      //right and left to change page
+      if(x>RIGHT) {
+          if(first_screen){
+              first_screen = 0; //change page
+              draw_admin_menu(first_screen);
+          }
+      }
+      if(x<LEFT) {
+          if(!first_screen){
+              first_screen = 1; //change page
+              draw_admin_menu(first_screen);
+          }
+      }
     }
 }
 
@@ -360,7 +374,7 @@ int display_function_selected(void){
                                      sel_rectangle_on_admin_menu.pos_x2,
                                      sel_rectangle_on_admin_menu.pos_y2};
 
-    int selected_function;
+    int selected_function; //saved value of selected function
 
     if(first_screen){ //FIRST SCREEN
         int i;

@@ -81,6 +81,8 @@ void boot(void){
     _hwInit();
 }
 void door_locked(void){
+    //it is better to update every tot time
+    //here we show the hour and minutes
     display_string("10 : 00");
 }
 
@@ -89,11 +91,12 @@ void insert_pin(bool pin){ //MAYBE WE CAN ADD LMPO HERE
     //pin = 0 -> SELECTED PIN
     //pin = 1 -> SAVED PIN
 
-    bool number_pin_aquired = 0;
+    bool number_pin_aquired;
 
-    int x = 35;
+    int x = 35; //position of selected digit on screen
 
     int i;
+    //acquire 4 digit
     for(i=0;i<4;i++){
         number_pin_aquired=0;
         do{
@@ -105,18 +108,17 @@ void insert_pin(bool pin){ //MAYBE WE CAN ADD LMPO HERE
                 move_rectangle_on_display(current_results[0], current_results[1], MOVE_ON_GRID);
             }
 
-            //detect pressure of button A (S1)
+            //Button A (S1) used to select a digit
             if(buttonA_pressed){
                 buttonA_pressed=0;
                 number_pin_aquired=1;
 
                 char string[2];
 
-
-                if(!pin){
+                if(!pin){ //selected pin
                     selected_pin_user[i]=number_selected();
                     sprintf(string, "%d", selected_pin_user[i]);
-                } else{
+                } else{   //saved pin
                     saved_pin_user[i]=number_selected();
                     sprintf(string, "%d", saved_pin_user[i]);
                 }
@@ -130,7 +132,7 @@ void insert_pin(bool pin){ //MAYBE WE CAN ADD LMPO HERE
                 x+=20;
             }
 
-            // Add BUTTON B to deselect a number (only if is not at the first digit)
+            // BUTTON B to deselect a number (only if is not at the first digit)
             if(buttonB_pressed){
                 buttonB_pressed=0;
                 if(i>0){
@@ -166,11 +168,13 @@ void open_door(void){
     for(i=0;i<1000000;i++); //simulate opening of the door, IS BETTER TO USE A TIMER
 
 }
+
 void wait_RFID(void){
     display_string("PLEASE, USE RFID");
     int i;
-    for(i=0;i<1000000;i++); //simulate opening of the door, IS BETTER TO USE A TIMER
+    for(i=0;i<1000000;i++); //IS BETTER TO USE A TIMER
 }
+
 int admin_menu(void){
     draw_admin_menu(1); // 1 = FIRST_SCREEN
 
@@ -189,7 +193,7 @@ int admin_menu(void){
                 return display_function_selected();
             }
         }
-        if(buttonB_pressed){
+        if(buttonB_pressed){    //turn back to grid (ADD A CONFIRMATION MENU ? )
             buttonB_pressed=0;
             admin_menu_active=0;
         }
@@ -231,7 +235,7 @@ void block_access(void){
     display_block_access();
 
     int i;
-    for(i=0;i<1000000;i++);
+    for(i=0;i<1000000;i++); //BETTER TO USE A TIMER
 }
 void wait_reset_door(void){
 
@@ -258,7 +262,6 @@ StateMachine_t fsm[] = {
      {STATE_BLOCK_PIN, fn_menu_block_pin},
 
      {STATE_WRONG_PIN, fn_WRONG_PIN},
-     {STATE_LAST_PIN, fn_LAST_PIN},
      {STATE_BLOCK_ACCESS, fn_BLOCK_ACCESS},
      {STATE_WAIT_RESET_DOOR, fn_WAIT_RESET_DOOR},
 };
@@ -273,7 +276,7 @@ void fn_BOOT(void){
 }
 
 void fn_DOOR_LOCKED(void){
-    printf("Door Locked \n");
+
     door_locked();
 
     if(buttonA_pressed){    //will be changed with proximity sensor
@@ -284,7 +287,7 @@ void fn_DOOR_LOCKED(void){
 }
 
 void fn_INSERT_PIN(void){
-    //printf("Insert Pin \n");
+
     display_string("INSERT PIN");
     draw_grid();
     insert_pin(0);
@@ -323,9 +326,6 @@ void fn_INSERT_PIN(void){
             cur_state = STATE_WRONG_PIN;
         }
     }
-
-
-
 }
 
 void fn_OPEN_DOOR(void){
@@ -346,7 +346,7 @@ void fn_ADMIN_MENU(void){
     int selected_function;
     selected_function = admin_menu();
 
-    //switch case to decide to which state of menu go
+    //decide to which state of admin menu go
     switch(selected_function){
     case 0:
         cur_state = STATE_LAST_ACCESS_LOG;
@@ -375,6 +375,9 @@ void fn_ADMIN_MENU(void){
 
 void fn_menu_lal(void){
     menu_last_access_log();
+
+    //show the time of last access (and also pin used)
+
     if(buttonB_pressed){
         buttonB_pressed=0;
         cur_state = STATE_ADMIN_MENU;
@@ -408,15 +411,43 @@ void fn_menu_setup_pin(void){
 
 void fn_menu_wifi(void){
     menu_setup_wifi();
+
+    //connect to wifi
+
+    if(buttonB_pressed){
+        buttonB_pressed=0;
+        cur_state = STATE_ADMIN_MENU;
+    }
 }
 void fn_menu_fact_reset(void){
     menu_factory_reset();
+
+    //maybe can reset user pin
+
+    if(buttonB_pressed){
+        buttonB_pressed=0;
+        cur_state = STATE_ADMIN_MENU;
+    }
 }
 void fn_menu_unlock_door(void){
     menu_unlock_door();
+
+    //move servo (same function of when opening door)
+
+    if(buttonB_pressed){
+        buttonB_pressed=0;
+        cur_state = STATE_ADMIN_MENU;
+    }
 }
 void fn_menu_block_pin(void){
     menu_block_pin();
+
+    //block the insertion of the pin, it can be unlock only with RFID
+
+    if(buttonB_pressed){
+        buttonB_pressed=0;
+        cur_state = STATE_ADMIN_MENU;
+    }
 }
 
 void fn_WRONG_PIN(void){
@@ -428,10 +459,6 @@ void fn_WRONG_PIN(void){
     }else if(error_pin==3){
         cur_state = STATE_BLOCK_ACCESS; //we should remove STATE_LAST_PIN, is too much
     }
-}
-
-void fn_LAST_PIN(void){
-
 }
 
 void fn_BLOCK_ACCESS(void){
