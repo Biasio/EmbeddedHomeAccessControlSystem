@@ -26,7 +26,7 @@ void door_locked(void);
 
 void draw_grid_numbers();
 
-void insert_pin(void);
+void insert_pin(bool pin);
 void open_door(void);
 void wait_RFID(void);
 int admin_menu(void);
@@ -84,9 +84,14 @@ void door_locked(void){
     display_string("10 : 00");
 }
 
-void insert_pin(void){ //MAYBE WE CAN ADD LMPO HERE
+void insert_pin(bool pin){ //MAYBE WE CAN ADD LMPO HERE
+
+    //pin = 0 -> SELECTED PIN
+    //pin = 1 -> SAVED PIN
 
     bool number_pin_aquired = 0;
+
+    int x = 35;
 
     int i;
     for(i=0;i<4;i++){
@@ -104,17 +109,47 @@ void insert_pin(void){ //MAYBE WE CAN ADD LMPO HERE
             if(buttonA_pressed){
                 buttonA_pressed=0;
                 number_pin_aquired=1;
-                selected_pin_user[i]=number_selected();
+
+                char string[2];
+
+
+                if(!pin){
+                    selected_pin_user[i]=number_selected();
+                    sprintf(string, "%d", selected_pin_user[i]);
+                } else{
+                    saved_pin_user[i]=number_selected();
+                    sprintf(string, "%d", saved_pin_user[i]);
+                }
+
+                Graphics_setForegroundColor(&g_sContext, ClrBlack);
+                Graphics_drawStringCentered(&g_sContext, (int8_t *) string,
+                                           AUTO_STRING_LENGTH,
+                                           x, 15,
+                                           OPAQUE_TEXT);
+
+                x+=20;
             }
 
-            // Add BUTTON B to deselect a number
+            // Add BUTTON B to deselect a number (only if is not at the first digit)
             if(buttonB_pressed){
                 buttonB_pressed=0;
+                if(i>0){
+                    i--;    //turn back at the previous digit
+                    x-=20;
+
+                    printf("\ni=%d \n",i);
+                    printf("x=%d \n\n",x);
+
+                    Graphics_drawStringCentered(&g_sContext, " ",
+                                                AUTO_STRING_LENGTH,
+                                                x, 15,
+                                                OPAQUE_TEXT);
+                    Graphics_drawLineH(&g_sContext, x-5, x+4, 25);
+                }
 
             }
 
         } while(number_pin_aquired==0); //when the digit is selected, exit from loop
-
     }
 
 
@@ -167,42 +202,6 @@ void menu_last_access_log(void){
     display_menu_last_access_log();
 }
 
-void menu_setup_pin(void){      //WHAT HAPPENS IF INSERT THE SAME PIN AS ADMIN PIN?
-                                //DISPLAY A MESSAGE THAT THE PIN IS ALREADY OF THE ADMIN
-
-    display_menu_setup_pin();
-
-    bool number_pin_aquired = 0;
-
-    int i;
-    for(i=0;i<4;i++){
-        number_pin_aquired=0;
-        do{
-            //get results from joystick
-            current_results = get_results_buffer();
-
-            //if timer of joystick finished, move rectangle
-            if(data_aquired()){
-                move_rectangle_on_display(current_results[0], current_results[1], MOVE_ON_GRID);
-            }
-
-            //detect pressure of button A (S1)
-            if(buttonA_pressed){
-                buttonA_pressed=0;
-                number_pin_aquired=1;
-                saved_pin_user[i]=number_selected();
-            }
-
-            // Add BUTTON B to deselect a number
-            if(buttonB_pressed){
-                buttonB_pressed=0;
-            }
-
-        } while(number_pin_aquired==0); //when the digit is selected, exit from loop
-   }
-
-
-}
 
 void menu_setup_wifi(void){
     display_menu_setup_wifi();
@@ -227,9 +226,7 @@ void wrong_pin(void){
     display_wrong_pin(error_pin);
 
 }
-void last_pin(void){
 
-}
 void block_access(void){
     display_block_access();
 
@@ -290,7 +287,7 @@ void fn_INSERT_PIN(void){
     //printf("Insert Pin \n");
     display_string("INSERT PIN");
     draw_grid();
-    insert_pin();
+    insert_pin(0);
 
     bool user_pin_correct = 1;
     bool admin_pin_correct = 1;
@@ -388,7 +385,8 @@ void fn_menu_setup_pin(void){
     bool pins_equal = 0;
 
     do{
-        menu_setup_pin();
+        display_menu_setup_pin();
+        insert_pin(1);
 
         // verify if pin_admin = pin_user
         int i;

@@ -7,7 +7,7 @@
 #include "LcdDriver/Crystalfontz128x128_ST7735.h"
 #include <stdio.h>
 
-#define RECTANGLE_SHIFT_ON_GRID 41
+#define RECTANGLE_SHIFT_ON_GRID 30
 #define RECTANGLE_SHIFT_ON_MENU 30
 
 typedef struct {

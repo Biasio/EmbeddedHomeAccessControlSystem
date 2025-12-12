@@ -1,7 +1,7 @@
 #include "display.h"
 
 //define first position for the rectangle used to select the numbers
-Rectangle sel_rectangle_on_grid = {6, 39, 6, 39};
+Rectangle sel_rectangle_on_grid = {22, 48, 32, 58};
 
 //define rectangle for selection in admin menu
 Rectangle sel_rectangle_on_admin_menu = {2, 126, 37, 67};
@@ -13,17 +13,17 @@ bool first_screen = 1; //in the admin menu you are in the first screen (first 3 
 //at each point corresponds a number
 const Point GRID_POINTS[] = {
      // P1 | P2 | P3
-     { 10, 10 },
-     { 50, 10 },
-     { 90, 10 },
+     { 35, 45 },
+     { 55, 45 },
+     { 85, 45 },
      // P4 | P5 | P6
-     { 10, 50 },
-     { 50, 50 },
-     { 90, 50 },
+     { 35, 75 },
+     { 55, 75 },
+     { 85, 75 },
      // P7 | P8 | P9
-     { 10, 90 },
-     { 50, 90 },
-     { 90, 90 }
+     { 35, 105 },
+     { 55, 105 },
+     { 85, 105 }
 };
 
 const Point MENU_POINTS[] = {
@@ -53,21 +53,31 @@ void _graphicsInit()
 void draw_grid(void)
 {
     Graphics_clearDisplay(&g_sContext);
-    GrContextFontSet(&g_sContext, &g_sFontCmss36);
+    GrContextFontSet(&g_sContext, &g_sFontCmss24);
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
+
+    int start_x = 20;
+    int end_x = 110;
+
+    int start_y = 30;
+    int end_y = 120;
+
     int i;
     //the lines of the grid are shifted of the same as when the rectangle is shifted
-    for(i=2; i<=128; i+=RECTANGLE_SHIFT_ON_GRID){
-        Graphics_drawLineH(&g_sContext, 2, 125, i);
-        Graphics_drawLineV(&g_sContext, i, 2, 125);
+    for(i=start_y; i<=end_y; i+=RECTANGLE_SHIFT_ON_GRID){
+        Graphics_drawLineH(&g_sContext, start_x, end_x, i);
+    }
+    for(i=start_x; i<=end_x; i+=RECTANGLE_SHIFT_ON_GRID){
+        Graphics_drawLineV(&g_sContext, i, start_y, end_y);
     }
 
     //draw the numbers on the grid
     char string[1];
     int x,y;
     i=1;
-    for(y=21; y<=106; y+=RECTANGLE_SHIFT_ON_GRID){
-        for(x=24; x<=106; x+=RECTANGLE_SHIFT_ON_GRID){
+
+    for(y=start_y+15; y<=end_y-15; y+=RECTANGLE_SHIFT_ON_GRID){
+        for(x=start_x+15; x<=end_x-15; x+=RECTANGLE_SHIFT_ON_GRID){
             sprintf(string, "%d", i++);
             Graphics_drawStringCentered(&g_sContext, (int8_t *) string,
                                         AUTO_STRING_LENGTH,
@@ -77,6 +87,17 @@ void draw_grid(void)
     }
     //draw rectangle in his inital position (NUMBER 1)
     draw_rectangle(1, sel_rectangle_on_grid.pos_x1, sel_rectangle_on_grid.pos_y1, sel_rectangle_on_grid.pos_x2, sel_rectangle_on_grid.pos_y2);
+
+
+    //draw number selected
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_setForegroundColor(&g_sContext, ClrBlack);
+
+    Graphics_drawLineH(&g_sContext, 30, 39, 25);
+    Graphics_drawLineH(&g_sContext, 50, 59, 25);
+    Graphics_drawLineH(&g_sContext, 70, 79, 25);
+    Graphics_drawLineH(&g_sContext, 90, 99, 25);
+
 }
 
 void draw_admin_menu(bool screen_number){
@@ -302,6 +323,7 @@ int number_selected(void){
             // Se il punto e' all'interno, stampa il suo numero (i + 1)
             printf("Number: %d\n", i + 1);
 
+            GrContextFontSet(&g_sContext, &g_sFontCmss24);
             Graphics_setForegroundColor(&g_sContext, ClrRed);
             Graphics_fillRectangle(&g_sContext, &rect);
             int j;
@@ -317,7 +339,7 @@ int number_selected(void){
             sprintf(string, "%d", i+1);
             Graphics_drawStringCentered(&g_sContext, (int8_t *) string,
                                         AUTO_STRING_LENGTH,
-                                        sel_rectangle_on_grid.pos_x1+18, sel_rectangle_on_grid.pos_y1+15,
+                                        sel_rectangle_on_grid.pos_x1+13, sel_rectangle_on_grid.pos_y1+13,
                                         OPAQUE_TEXT);
 
 
