@@ -22,17 +22,6 @@ typedef struct {
     int pos_y2;
 }Rectangle;
 
-//Functions raggruppa le funzioni del menu admin
-//quando si preme su una di esse si attiva un solo valore
-typedef struct {
-    bool last_access_log;
-    bool pin_setup;
-    bool wifi_setup;
-    bool factory_reset;
-    bool unnlock_door;
-    bool block_pin;
-}Functions;
-
 
 //used to access the array GRID_POINTS easily
 typedef enum {
@@ -41,7 +30,7 @@ typedef enum {
 
 //functions inside admin menu
 typedef enum {
-    FUNCTION_NONE, LAST_ACCESS_LOG, SETUP_PIN, WIFI_SETUP, FACTORY_RESET, UNLOCK_DOOR, BLOCK_PIN, NUM_FUNCTION
+    LAST_ACCESS_LOG, SETUP_PIN, WIFI_SETUP, FACTORY_RESET, UNLOCK_DOOR, BLOCK_PIN, NUM_FUNCTION
 } enum_menu_functions;
 
 
@@ -53,16 +42,25 @@ void _graphicsInit();
 void draw_grid(void);
 void draw_admin_menu(bool screen_number);
 
-void number_selected(void);
-void function_selected(void);
+int number_selected(void);
+int display_function_selected(void);
 
+void draw_rectangle(bool new_pos, int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on);
 
-void menu_last_access_log(void);
-void menu_setup_pin(void);
-void menu_setup_wifi(void);
-void menu_factory_reset(void);
-void menu_unlock_door(void);
-void menu_block_pin(void);
+void display_menu_last_access_log(void);
+void display_menu_setup_pin(void);
+void display_menu_setup_wifi(void);
+void display_menu_factory_reset(void);
+void display_menu_unlock_door(void);
+void display_menu_block_pin(void);
+
+void display_clock(int hour, int minute);
+void display_door_open(void);
+void display_wait_RFID(void);
+void display_wrong_pin(int error_pin);
+void display_block_access(void);
+
+void display_string(const char* string);
 
 #endif

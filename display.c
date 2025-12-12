@@ -6,8 +6,6 @@ Rectangle sel_rectangle_on_grid = {6, 39, 6, 39};
 //define rectangle for selection in admin menu
 Rectangle sel_rectangle_on_admin_menu = {2, 126, 37, 67};
 
-Functions menu_functions = {0, 0, 0, 0, 0, 0}; //all functions are disabled
-
 bool move_on_menu = 0; //used to decide the color of the rectangle in base of the type of screen (grid or menu)
 bool first_screen = 1; //in the admin menu you are in the first screen (first 3 entries)
 
@@ -54,6 +52,7 @@ void _graphicsInit()
 
 void draw_grid(void)
 {
+    Graphics_clearDisplay(&g_sContext);
     GrContextFontSet(&g_sContext, &g_sFontCmss36);
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
     int i;
@@ -239,7 +238,7 @@ void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on){
        move_on_menu = 0;
 
        if(x>RIGHT) {
-           if(sel_rectangle_on_grid.pos_x1>UPPER_LIMIT) {
+           if(sel_rectangle_on_grid.pos_x1<UPPER_LIMIT) {
                move_rectangle_right(&sel_rectangle_on_grid, RECTANGLE_SHIFT_ON_GRID);
            }
        }
@@ -249,7 +248,7 @@ void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on){
            }
        }
        if(y>UP) {
-           if(sel_rectangle_on_grid.pos_x1>LOWER_LIMIT){
+           if(sel_rectangle_on_grid.pos_y1>LOWER_LIMIT){
                move_rectangle_up(&sel_rectangle_on_grid, RECTANGLE_SHIFT_ON_GRID);
            }
        }
@@ -285,7 +284,7 @@ void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on){
 }
 
 
-void number_selected(void){
+int number_selected(void){
     const Graphics_Rectangle rect = {sel_rectangle_on_grid.pos_x1,
                                      sel_rectangle_on_grid.pos_y1,
                                      sel_rectangle_on_grid.pos_x2,
@@ -326,17 +325,20 @@ void number_selected(void){
             Graphics_drawRectangle(&g_sContext, &rect);
 
             // Stop at the right number
-                break;
+            return i+1;
         }
     }
+    return 0;
 }
 
-//select function on menu
-void function_selected(void){
+//select function on menu RETURN FUNCTION
+int display_function_selected(void){
     const Graphics_Rectangle rect = {sel_rectangle_on_admin_menu.pos_x1,
                                      sel_rectangle_on_admin_menu.pos_y1,
                                      sel_rectangle_on_admin_menu.pos_x2,
                                      sel_rectangle_on_admin_menu.pos_y2};
+
+    int selected_function;
 
     if(first_screen){ //FIRST SCREEN
         int i;
@@ -348,39 +350,23 @@ void function_selected(void){
                         MENU_POINTS[i].x,
                         MENU_POINTS[i].y))
                 {
-                    menu_functions.last_access_log = false;
-                    menu_functions.pin_setup       = false;
-                    menu_functions.wifi_setup      = false;
-                    menu_functions.factory_reset   = false;
-                    menu_functions.unnlock_door    = false;
-                    menu_functions.block_pin       = false;
 
                     switch(i){
                     case 0:
                         printf("Last access log \n", i);
-                        menu_functions.last_access_log = 1;
-
-                        menu_last_access_log();
-
+                        selected_function = LAST_ACCESS_LOG;
                         break;
                     case 1:
                         printf("pin_setup \n", i);
-                        menu_functions.pin_setup = 1;
-
-                        menu_setup_pin();
-
+                        selected_function = SETUP_PIN;
                         break;
                     case 2:
                         printf("wifi_setup \n", i);
-                        menu_functions.wifi_setup = 1;
-
-                        menu_setup_wifi();
-
+                        selected_function = WIFI_SETUP;
                         break;
                     default:
                         printf("Nothing \n", i);
                     }
-
                 }
             }
 
@@ -394,48 +380,34 @@ void function_selected(void){
                         MENU_POINTS[i].x,
                         MENU_POINTS[i].y))
                 {
-                    menu_functions.last_access_log = false;
-                    menu_functions.pin_setup       = false;
-                    menu_functions.wifi_setup      = false;
-                    menu_functions.factory_reset   = false;
-                    menu_functions.unnlock_door    = false;
-                    menu_functions.block_pin       = false;
 
                     switch(i){
                     case 0:
                         printf("factory_reset \n", i);
-                        menu_functions.factory_reset = 1;
-
-                        menu_factory_reset();
-
+                        selected_function = FACTORY_RESET;
                         break;
                     case 1:
                         printf("unnlock_door \n", i);
-                        menu_functions.unnlock_door = 1;
-
-                        menu_unlock_door();
-
+                        selected_function = UNLOCK_DOOR;
                         break;
                     case 2:
                         printf("block_pin \n", i);
-                        menu_functions.block_pin = 1;
-
-                        menu_block_pin();
-
+                        selected_function = BLOCK_PIN;
                         break;
                     default:
                         printf("Nothing \n", i);
                     }
+
                 }
             }
     }
 
-
+    return selected_function;
 }
 
 
 
-void menu_last_access_log(void){
+void display_menu_last_access_log(void){
     int32_t x_string = 64;
     int32_t y_string = 20;
 
@@ -451,26 +423,12 @@ void menu_last_access_log(void){
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
 }
 
-void menu_setup_pin(void){
-    int32_t x_string = 64;
-    int32_t y_string = 20;
-
-    Graphics_clearDisplay(&g_sContext);
-
-    GrContextFontSet(&g_sContext, &g_sFontCmss16);
-    Graphics_setForegroundColor(&g_sContext, ClrRed);
-/*
-    Graphics_drawStringCentered(&g_sContext, (int8_t *) "PIN SETUP",
-                                AUTO_STRING_LENGTH,
-                                x_string, y_string,
-                                OPAQUE_TEXT);
-*/
-    Graphics_setForegroundColor(&g_sContext, ClrBlack);
-x
+void display_menu_setup_pin(void){
+    display_string("SETUP PIN");
     draw_grid();
 }
 
-void menu_setup_wifi(void){
+void display_menu_setup_wifi(void){
     int32_t x_string = 64;
     int32_t y_string = 20;
 
@@ -486,7 +444,7 @@ void menu_setup_wifi(void){
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
 }
 
-void menu_factory_reset(void){
+void display_menu_factory_reset(void){
     int32_t x_string = 64;
     int32_t y_string = 20;
 
@@ -502,7 +460,7 @@ void menu_factory_reset(void){
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
 }
 
-void menu_unlock_door(void){
+void display_menu_unlock_door(void){
     int32_t x_string = 64;
     int32_t y_string = 20;
 
@@ -518,7 +476,7 @@ void menu_unlock_door(void){
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
 }
 
-void menu_block_pin(void){
+void display_menu_block_pin(void){
     int32_t x_string = 64;
     int32_t y_string = 20;
 
@@ -532,5 +490,82 @@ void menu_block_pin(void){
                                 x_string, y_string,
                                 OPAQUE_TEXT);
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
+}
+
+
+// -------------------------------------- //
+
+//Maybe is better to build a function that displays the string that I pass
+
+void display_door_open(void){
+    Graphics_clearDisplay(&g_sContext);
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "CODE CORRECT",
+                                    AUTO_STRING_LENGTH,
+                                    64, 54,
+                                    OPAQUE_TEXT);
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "OPENING DOOR",
+                                        AUTO_STRING_LENGTH,
+                                        64, 74,
+                                        OPAQUE_TEXT);
+}
+
+void display_wait_RFID(void){
+    Graphics_clearDisplay(&g_sContext);
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "PLEASE, USE RFID",
+                                    AUTO_STRING_LENGTH,
+                                    64, 64,
+                                    OPAQUE_TEXT);
+}
+
+void display_wrong_pin(int error_pin){
+    Graphics_clearDisplay(&g_sContext);
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "WRONG PIN",
+                                    AUTO_STRING_LENGTH,
+                                    64, 64,
+                                    OPAQUE_TEXT);
+    char string[20];
+    sprintf(string, "ERROR %d/3", error_pin);
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) string,
+                                        AUTO_STRING_LENGTH,
+                                        64, 84,
+                                        OPAQUE_TEXT);
+    int i;
+    for(i=0;i<1000000;i++); //simulate opening of the door, IS BETTER TO USE A TIMER
+}
+
+void display_block_access(void){
+    Graphics_clearDisplay(&g_sContext);
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) "ACCESS BLOCKED",
+                                    AUTO_STRING_LENGTH,
+                                    64, 64,
+                                    OPAQUE_TEXT);
+}
+
+void display_clock(int hour, int minute){
+    Graphics_clearDisplay(&g_sContext);
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+
+    char string[20];
+    sprintf(string, "%d : %d", hour, minute);
+
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) string,
+                                    AUTO_STRING_LENGTH,
+                                    64, 64,
+                                    OPAQUE_TEXT);
+}
+
+void display_string(const char* string){
+    Graphics_clearDisplay(&g_sContext);
+    GrContextFontSet(&g_sContext, &g_sFontCmss16);
+    Graphics_drawStringCentered(&g_sContext, (int8_t *) string,
+                                    AUTO_STRING_LENGTH,
+                                    64, 64,
+                                    OPAQUE_TEXT);
+    int i;
+    for(i=0;i<1000000;i++); //IS BETTER TO USE A TIMER FOR DELAY
 }
 
