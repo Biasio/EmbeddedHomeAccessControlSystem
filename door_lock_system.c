@@ -7,8 +7,6 @@
 int main(void)
 {
 
-    fn_BOOT();
-
     while(1){
 
         FSM_Run();

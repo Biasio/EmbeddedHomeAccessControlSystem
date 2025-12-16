@@ -1,13 +1,12 @@
 #include "joystick.h"
 
-volatile uint16_t resultsBuffer[2];
 
 //variable used to move the rectangle in the display after the joystick moved
-bool move_rectangle = 0;
+static bool move_rectangle = 0;
 
-int timer_int_counter = 0;
+static int timer_int_counter = 0;
 
-const int NUM_INTERRUPT = 4;
+static const int NUM_INTERRUPT = 3;
 
 void _timerInit(){
     /* Configuring Continuous Mode */
@@ -57,7 +56,7 @@ void _adcInit(){
         ADC14_toggleConversionTrigger();
 }
 
-//if the movement is too fast, add a counter for the timer interrupt
+//The movement is too fast, add a counter for the timer interrupt
 bool update_rectangle_pos(uint64_t status)
 {
     return move_rectangle && (status & ADC_INT1);
@@ -80,26 +79,19 @@ void ADC14_IRQHandler(void)
     status = ADC14_getEnabledInterruptStatus();
     ADC14_clearInterruptFlag(status);
 
-    if(update_rectangle_pos(status))
+    if(update_rectangle_pos(status)) //timer as finished, can update position on display
     {
         resultsBuffer[0] = ADC14_getResult(ADC_MEM0);
         resultsBuffer[1] = ADC14_getResult(ADC_MEM1);
 
-        //secondo me questo ISR dovrebbe solo ottenere i dati della posizione del joystick
-        //le funzioni per spostare il rettangolo sulla griglia e nel menu admin dovrebbero essere richiamate da
-        //altre funzioni come ad es. gli stati nella FSM
-
-        //move_on_grid(resultsBuffer[0], resultsBuffer[1]);
         move_rectangle=0;
     }
 
 }
 
-// 2. FUNZIONE GETTER PUBBLICA:
-// Restituisce un puntatore all'array statico.
-uint16_t* get_results_buffer(void) {
-    // Restituendo il puntatore, permetti al chiamante di leggere e scrivere
-    // l'array, ma l'array stesso rimane definito staticamente in questo file.
+// GETTER:
+// Returns a pointer to resultBuffer
+const uint16_t* get_results_buffer(void) {
     return resultsBuffer;
 }
 

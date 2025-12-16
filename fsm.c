@@ -13,18 +13,13 @@ int selected_pin_user[4] = {0,0,0,0};
 
 int error_pin = 0; //variable to count the number of wrong pin, when is equal to 3, block access
 
-//bool first_screen = 1; //use to select the page in the admin menu
-
-uint16_t* current_results;
+const uint16_t* current_results;
 
 int32_t displayX = 64;
 int32_t displayY = 64;
 
 void _hwInit(void);
-void boot(void);
 void door_locked(void);
-
-void draw_grid_numbers();
 
 void insert_pin(bool pin);
 void open_door(void);
@@ -77,9 +72,6 @@ void _hwInit(void)
     _pushButtonsInit();
 }
 
-void boot(void){
-    _hwInit();
-}
 void door_locked(void){
     //it is better to update every tot time
     //here we show the hour and minutes
@@ -142,6 +134,7 @@ void insert_pin(bool pin){ //MAYBE WE CAN ADD LMPO HERE
                     printf("\ni=%d \n",i);
                     printf("x=%d \n\n",x);
 
+                    Graphics_setForegroundColor(&g_sContext, ClrBlack);
                     Graphics_drawStringCentered(&g_sContext, " ",
                                                 AUTO_STRING_LENGTH,
                                                 x, 15,
@@ -225,6 +218,9 @@ void menu_block_pin(void){
 
 
 void wrong_pin(void){
+    // - turn on LED
+    // - make a sound to signal that the code is incorrect
+
     error_pin++;
 
     display_wrong_pin(error_pin);
@@ -244,7 +240,7 @@ void wait_reset_door(void){
 // ------------------------------------------------ //
 
 
-State_t cur_state = STATE_DOOR_LOCKED;
+State_t cur_state = STATE_BOOT;
 
 StateMachine_t fsm[] = {
      {STATE_BOOT, fn_BOOT},
@@ -271,7 +267,7 @@ StateMachine_t fsm[] = {
 
 void fn_BOOT(void){
     printf("Boot \n");
-    boot();
+    _hwInit();
     cur_state = STATE_DOOR_LOCKED;
 }
 
@@ -307,8 +303,8 @@ void fn_INSERT_PIN(void){
 
     // --- 2. Check if the User PIN was Correct ---
     if(user_pin_correct){
-        cur_state = STATE_OPEN_DOOR;
         error_pin = 0; //pin correct, reset counter of errors
+        cur_state = STATE_OPEN_DOOR;
     } else {
         // --- 3. If User PIN was wrong, Check for ADMIN PIN ---
 
@@ -320,8 +316,8 @@ void fn_INSERT_PIN(void){
         }
         // --- 4. Final State Decision ---
         if (admin_pin_correct) {
-            cur_state = STATE_WAIT_RFID;
             error_pin = 0; //pin correct, reset counter of errors
+            cur_state = STATE_WAIT_RFID;
         } else {
             cur_state = STATE_WRONG_PIN;
         }
@@ -372,6 +368,9 @@ void fn_ADMIN_MENU(void){
         break;
     }
 }
+
+//Functions of admin menu
+// --------------------------------------------- //
 
 void fn_menu_lal(void){
     menu_last_access_log();
@@ -450,6 +449,8 @@ void fn_menu_block_pin(void){
     }
 }
 
+// --------------------------------------------- //
+
 void fn_WRONG_PIN(void){
     printf("Wrong pin \n");
     wrong_pin(); //show an error message on display
@@ -457,7 +458,8 @@ void fn_WRONG_PIN(void){
     if(error_pin<3){
         cur_state = STATE_INSERT_PIN;
     }else if(error_pin==3){
-        cur_state = STATE_BLOCK_ACCESS; //we should remove STATE_LAST_PIN, is too much
+        error_pin = 0; //pin wrong for 3 times, reset counter of errors
+        cur_state = STATE_BLOCK_ACCESS;
     }
 }
 
@@ -480,14 +482,15 @@ void fn_WAIT_RESET_DOOR(void){
 // Function to run in the main
 void FSM_Run(void)
 {
-    //THE INIT STATE MUST STAY OUTSIDE OF THE FSM, BECAUSE IF NOT, IT WILL FOREVER STAY IN LPM0
-    PCM_gotoLPM0();
-
-
     if(cur_state < NUM_STATES){
         (*fsm[cur_state].state_function)();
     }
     else{
         // Gestione errore stato non valido
     }
+
+    PCM_gotoLPM0();
+
+
+
 }

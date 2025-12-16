@@ -37,9 +37,13 @@ typedef enum {
 //variable used to define the display
 Graphics_Context g_sContext;
 
+// Initialize graphic context
 void _graphicsInit();
 
+// Draw grid of numbers
 void draw_grid(void);
+
+// Draw admin menu
 void draw_admin_menu(bool screen_number);
 
 int number_selected(void);

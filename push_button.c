@@ -9,9 +9,9 @@ static const Timer_A_UpModeConfig debounceTimerConfig =
 {
     TIMER_A_CLOCKSOURCE_SMCLK,              // SMCLK Clock Source
     TIMER_A_CLOCKSOURCE_DIVIDER_64,         // SMCLK/64 = 46.875 Hz
-    4688,                                   // CCR0 Value (2344 counts = ~50ms) CCR Value = f_{CLK} x Tempo Desiderato
-    TIMER_A_TAIE_INTERRUPT_DISABLE,         // Disable Overflow ISR (non serve)
-    TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE      // Abilita l'interrupt per CCR0
+    4688,                                   // CCR0 Value (4688 counts = ~100ms) CCR Value = f_{CLK} x desired_time
+    TIMER_A_TAIE_INTERRUPT_DISABLE,         // Disable Overflow ISR
+    TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE      // Enable interrupt for CCR0
 };
 
 void _timerInitButton(){
@@ -44,24 +44,23 @@ void _pushButtonsInit(){
 
 void TA1_0_IRQHandler(void)
 {
-    // 1. Ferma il timer immediatamente (o azzera il contatore e ferma)
+    // 1. Stop the timer
     Timer_A_stop(TIMER_A1_BASE);
 
-    // 2. Controlla lo stato del pin (logica di validazione)
+    // 2. Check state of pin
     if (GPIO_getInputPinValue(GPIO_PORT_P5, GPIO_PIN1) == GPIO_INPUT_PIN_LOW) {
-        buttonA_pressed = 1; // Pressione valida
+        buttonA_pressed = 1; // Valid pressure
         //printf("Valid button A press detected.\n\n");
     }
     if (GPIO_getInputPinValue(GPIO_PORT_P3, GPIO_PIN5) == GPIO_INPUT_PIN_LOW) {
-        buttonB_pressed = 1; // Pressione valida
+        buttonB_pressed = 1; // Valid pressure
         //printf("Valid button B press detected.\n\n");
     }
 
-    // 3. Riabilita l'interrupt del pulsante
+    // 3. Enable interrupt for push buttons
     GPIO_enableInterrupt(GPIO_PORT_P5, GPIO_PIN1);
     GPIO_enableInterrupt(GPIO_PORT_P3, GPIO_PIN5);
 
-    // 4. Cancella il flag di interrupt del CCR0
     Timer_A_clearCaptureCompareInterrupt(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_0);
 }
 
@@ -76,12 +75,11 @@ void PORT5_IRQHandler(void)
     if(status && GPIO_PIN1){
         //printf("Button pressed - Debounce started\n");
 
-        // Disabilita immediatamente gli interrupt di PORT5
-        // Fino a quando il timer non è scaduto, non vogliamo altri interrupt da P5
+        // Disable interrupts of PORT5 until timer has passed
         GPIO_disableInterrupt(GPIO_PORT_P5, GPIO_PIN1);
 
         /* Starting the Timer_A0 in continuous mode */
-        Timer_A_clearTimer(TIMER_A1_BASE); // Resetta il contatore a 0
+        Timer_A_clearTimer(TIMER_A1_BASE); // Reset counter at 0
         Timer_A_startCounter(TIMER_A1_BASE, TIMER_A_CONTINUOUS_MODE);
     }
 }
@@ -98,7 +96,7 @@ void PORT3_IRQHandler(void)
         GPIO_disableInterrupt(GPIO_PORT_P3, GPIO_PIN5);
 
         /* Starting the Timer_A0 in continuous mode */
-        Timer_A_clearTimer(TIMER_A1_BASE); // Resetta il contatore a 0
+        Timer_A_clearTimer(TIMER_A1_BASE); // Reset counter at 0
         Timer_A_startCounter(TIMER_A1_BASE, TIMER_A_CONTINUOUS_MODE);
     }
 

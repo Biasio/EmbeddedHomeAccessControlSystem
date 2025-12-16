@@ -1,5 +1,7 @@
 #include "display.h"
 
+void highlight_selected_menu_item(void);
+
 //define first position for the rectangle used to select the numbers
 Rectangle sel_rectangle_on_grid = {22, 48, 32, 58};
 
@@ -131,9 +133,7 @@ void draw_admin_menu(bool screen_number){
     GrContextFontSet(&g_sContext, &g_sFontCmss12);
      //in case of more than two pages, use an int to count the number of pages
      if(screen_number){ //first page
-
          first_screen=1;
-
          start = 0;
          end = 3;
 
@@ -143,9 +143,7 @@ void draw_admin_menu(bool screen_number){
                                         OPAQUE_TEXT);
      }
      else{   //second page
-
          first_screen=0;
-
          start = 3;
          end = 6;
 
@@ -193,6 +191,29 @@ void draw_admin_menu(bool screen_number){
 
 }
 
+/******************************************************************************
+ * FUNCTION: Draws a selection rectangle in a new position or erases an old one.
+ * DETAILS: This function abstracts the process of drawing a rectangle
+ * (using ClrRed) or erasing a rectangle (using ClrBlack/ClrWhite)
+ * depending on the state of the static/global variable
+ * 'move_on_menu' and the function's 'new_pos' flag.
+ *
+ *   The choice of erasure color (Black or White) is context-dependent,
+ * implying the function handles two different visual states:
+ * 1. Menu Mode (Erased with Black)
+ * 2. Grid Mode (Erased with White)
+ *
+ * INPUT:
+ *  - new_pos:  Boolean flag. If true (1), the rectangle is drawn
+ * in the new position (highlighted/Red). If false (0),
+ * the rectangle is drawn over the old position using
+ * the background color (erased).
+ *  - x1         X-coordinate of the top-left corner.
+ *  - y1         Y-coordinate of the top-left corner.
+ *  - x2         X-coordinate of the bottom-right corner.
+ *  - y2         Y-coordinate of the bottom-right corner.
+ *
+ ******************************************************************************/
 
 void draw_rectangle(bool new_pos, int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 {
@@ -248,7 +269,30 @@ void move_rectangle_down(Rectangle* rectangle, int16_t shift){
         draw_rectangle(1, rectangle->pos_x1, rectangle->pos_y1, rectangle->pos_x2, rectangle->pos_y2);
 }
 
-void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on){
+
+/*******************************************************************************
+ * @brief       Handles all display and selection rectangle movements based on
+ * joystick input for both Grid and Menu interfaces.
+ *
+ * @details     Reads raw joystick X and Y values to determine user intent.
+ * It first checks the 'grid_on' flag to branch into Grid Mode
+ * (move_on_menu = 0) or Menu Mode (move_on_menu = 1).
+ * * In Menu Mode, it handles three actions:
+ * 1. Initial Text Coloring: Highlights the currently selected menu item.
+ * 2. Vertical Scrolling: Clears old text and moves the rectangle up/down.
+ * 3. Horizontal Paging: Changes the 'first_screen' flag and redraws the menu.
+ *
+ * @param[in]   x          Raw X-axis value from the joystick.
+ * @param[in]   y          Raw Y-axis value from the joystick.
+ * @param[in]   grid_on    Flag: true for Grid Mode, false for Menu Mode.
+ *
+ * @return      void
+ *
+ * @note        Relies on the global flag 'first_screen' and several global/static
+ * rectangle structs and string arrays (e.g., 'function_strings').
+ ******************************************************************************/
+
+void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on) {
 
     const int RIGHT = 16000;
     const int LEFT = 300;
@@ -283,26 +327,52 @@ void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on){
            }
        }
     }
+
     else{ //move rectangle on menu
        move_on_menu = 1;
 
-       //add blink of rectangle on current function
-       //draw_rectangle(1, rectangle->pos_x1, rectangle->pos_y1, rectangle->pos_x2, rectangle->pos_y2);
+       int32_t x_string = 64;
+       int32_t y_string = 50;
+       int8_t start = 0;
+       int8_t end = 2;
+       int i;
+       int8_t string_offset = (first_screen) ? 0 : 3;
 
-
-       //up and down to scrool in the menu
+       //up and down to scroll in the menu
        if(y>UP) {
+           // 1. Clear ALL currently drawn menu strings (Draw them in black)
+           for(i=start; i<=end; i++){
+               int8_t string_index = i + string_offset;
+               Graphics_setForegroundColor(&g_sContext, ClrBlack);
+               Graphics_drawStringCentered(&g_sContext, (int8_t *) function_strings[string_index],
+                                             AUTO_STRING_LENGTH,
+                                             x_string, y_string,
+                                             OPAQUE_TEXT);
+               y_string+=30;
+           }
+           // 2. Move the selection rectangle UP
           if(sel_rectangle_on_admin_menu.pos_y1>LOWER_LIMIT) {
             move_rectangle_up(&sel_rectangle_on_admin_menu, RECTANGLE_SHIFT_ON_MENU);
           }
        }
        if(y<DOWN) {
+           // 1. Clear ALL currently drawn menu strings (Draw them in black)
+           for(i=start; i<=end; i++){
+               int8_t string_index = i + string_offset;
+               Graphics_setForegroundColor(&g_sContext, ClrBlack);
+               Graphics_drawStringCentered(&g_sContext, (int8_t *) function_strings[string_index],
+                                             AUTO_STRING_LENGTH,
+                                             x_string, y_string,
+                                             OPAQUE_TEXT);
+               y_string+=30;
+           }
+           // 2. Move the selection rectangle DOWN
            if(sel_rectangle_on_admin_menu.pos_y1<UPPER_LIMIT) {
               move_rectangle_down(&sel_rectangle_on_admin_menu, RECTANGLE_SHIFT_ON_MENU);
           }
        }
 
-      //right and left to change page
+       // --- Horizontal Paging Logic --- //
       if(x>RIGHT) {
           if(first_screen){
               first_screen = 0; //change page
@@ -315,9 +385,83 @@ void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on){
               draw_admin_menu(first_screen);
           }
       }
+
+      // --- FINAL STEP: Draw the NEWLY selected item in RED --- //
+      // This must run after any movement (scroll or page change)
+
+      highlight_selected_menu_item();
+}
+}
+
+// Helper function to draw the selected menu item in red
+void highlight_selected_menu_item(void) {
+    const Graphics_Rectangle rect = {sel_rectangle_on_admin_menu.pos_x1,
+                                     sel_rectangle_on_admin_menu.pos_y1,
+                                     sel_rectangle_on_admin_menu.pos_x2,
+                                     sel_rectangle_on_admin_menu.pos_y2};
+
+    int32_t x_string = 64;
+    int32_t y_string; // Will be set in the switch block
+
+    int8_t start = 0;
+    int8_t end = 2;
+
+    // Determine the string offset once
+    int8_t string_offset = (first_screen) ? 0 : 3;
+
+    int i;
+    for (i = start; i <= end; i++) {
+        int8_t menu_index = i;
+        int8_t function_string_index = i + string_offset;
+
+        // 1. Check if the current point is within the rectangle 'rect'
+        if (Graphics_isPointWithinRectangle(&rect, MENU_POINTS[menu_index].x, MENU_POINTS[menu_index].y)) {
+
+            // 2. Set the Y position based on the menu_index (0, 1, or 2)
+            switch(menu_index) {
+            case 0:
+                y_string = 50;
+                break;
+            case 1:
+                y_string = 80;
+                break;
+            case 2:
+                y_string = 110;
+                break;
+            }
+
+            // 3. Draw the selected string in RED
+            Graphics_setForegroundColor(&g_sContext, ClrRed);
+            Graphics_drawStringCentered(&g_sContext, (int8_t *) function_strings[function_string_index],
+                                         AUTO_STRING_LENGTH,
+                                         x_string, y_string,
+                                         OPAQUE_TEXT);
+            // Since we found the selected item, we can stop the loop
+            return;
+        }
     }
 }
 
+/*******************************************************************************
+ * @brief       Detects which grid point is currently selected by the grid
+ * selection rectangle and provides visual feedback.
+ *
+ * @details     The function iterates through a predefined array of coordinates,
+ * GRID_POINTS, checking if the current position of the global selection
+ * rectangle ('sel_rectangle_on_grid') contains any of the points.
+ * * If a selected point is found, the function executes a temporary visual
+ * "flash" (Red -> White fill) over the selected grid cell for feedback.
+ * Finally, it re-draws the cell's content (the number) and the red selection
+ * rectangle before returning the selected number.
+ *
+ * @return      int            Returns the 1-based index (i + 1) of the
+ * selected point if a match is found. Returns 0 if no grid point is
+ * within the selection rectangle.
+ *
+ * @note        Uses a busy-wait loop (for j=0; j<100000; j++) to create a
+ * delay for the visual "flash." This is a blocking, non-optimal approach
+ * for embedded systems and should ideally be replaced with a timer-based delay.
+ ******************************************************************************/
 
 int number_selected(void){
     const Graphics_Rectangle rect = {sel_rectangle_on_grid.pos_x1,
@@ -326,16 +470,18 @@ int number_selected(void){
                                      sel_rectangle_on_grid.pos_y2};
 
     int i;
+    // Iterate through the array of fixed grid point coordinates (GRID_POINTS)
     for (i = NUM1; i < NUM_POINTS; i++)
     {
-        // Verifica se il punto corrente (GRID_POINTS[i]) e' all'interno del rettangolo 'rect'
+        // Check if the current grid point's coordinates (x, y) fall within
+        // the selection rectangle's boundaries.
         if (Graphics_isPointWithinRectangle(
                 &rect,
                 GRID_POINTS[i].x,
                 GRID_POINTS[i].y))
         {
-            // Se il punto e' all'interno, stampa il suo numero (i + 1)
-            printf("Number: %d\n", i + 1);
+
+            // --- Feedback Flash Sequence Start ---
 
             GrContextFontSet(&g_sContext, &g_sFontCmss24);
             Graphics_setForegroundColor(&g_sContext, ClrRed);
@@ -345,6 +491,7 @@ int number_selected(void){
             Graphics_setForegroundColor(&g_sContext, ClrWhite);
             Graphics_fillRectangle(&g_sContext, &rect);
 
+            // --- Feedback Flash Sequence End ---
 
             char string[2];
 
@@ -360,27 +507,47 @@ int number_selected(void){
             Graphics_setForegroundColor(&g_sContext, ClrRed);
             Graphics_drawRectangle(&g_sContext, &rect);
 
-            // Stop at the right number
+            // Return the selected number immediately
             return i+1;
         }
     }
     return 0;
 }
 
-//select function on menu RETURN FUNCTION
+/*******************************************************************************
+ * @brief       Determines and returns the function identifier corresponding to
+ * the currently selected menu item.
+ *
+ * @details     This function evaluates the position of the selection rectangle
+ * ('sel_rectangle_on_admin_menu') against a set of fixed menu points
+ * ('MENU_POINTS'). The function's logic is conditional, depending on the state
+ * of the global 'first_screen' flag, which allows it to map three menu
+ * positions to one of two sets of three distinct function identifiers.
+ * * * The function iterates through the three visible menu points (indices 0 to 2).
+ * * When a match is found, the corresponding function identifier (e.g.,
+ * LAST_ACCESS_LOG, FACTORY_RESET) is assigned to 'selected_function'
+ * based on the current screen context.
+ *
+ * @param       void
+ *
+ * @return      int            Returns the integer value of the selected function's
+ * identifier (e.g., LAST_ACCESS_LOG). The actual identifier values are
+ * expected to be defined as global macros or enums.
+ *
+ ******************************************************************************/
 int display_function_selected(void){
     const Graphics_Rectangle rect = {sel_rectangle_on_admin_menu.pos_x1,
                                      sel_rectangle_on_admin_menu.pos_y1,
                                      sel_rectangle_on_admin_menu.pos_x2,
                                      sel_rectangle_on_admin_menu.pos_y2};
 
-    int selected_function; //saved value of selected function
+    int selected_function = 0; // Initialize to 0 (or an appropriate 'NO_SELECTION' default)
 
-    if(first_screen){ //FIRST SCREEN
+    if(first_screen){ // --- FIRST SCREEN (Functions 0-2) ---
         int i;
             for (i = 0; i <= 2; i++) //only 3 points for screen
             {
-                // Verifica se il punto corrente (MENU_POINTS[i]) e' all'interno del rettangolo 'rect'
+                // Check if current point (MENU_POINTS[i]) is inside the rectangle rect
                 if (Graphics_isPointWithinRectangle(
                         &rect,
                         MENU_POINTS[i].x,
@@ -403,14 +570,16 @@ int display_function_selected(void){
                     default:
                         printf("Nothing \n", i);
                     }
+                    // Break the loop once the selected function is found
+                    return selected_function;
                 }
             }
 
-    }else{ //SECOND SCREEN
+    }else{ // --- SECOND SCREEN (Functions 3-5) ---
         int i;
             for (i = 0; i <= 2; i++)
             {
-                // Verifica se il punto corrente (MENU_POINTS[i]) e' all'interno del rettangolo 'rect'
+                // Check if current point (MENU_POINTS[i]) is inside the rectangle rect
                 if (Graphics_isPointWithinRectangle(
                         &rect,
                         MENU_POINTS[i].x,
@@ -433,11 +602,12 @@ int display_function_selected(void){
                     default:
                         printf("Nothing \n", i);
                     }
-
+                    // Break the loop once the selected function is found
+                    return selected_function;
                 }
             }
     }
-
+    // Return the initial value (0) if no menu point was selected on either screen
     return selected_function;
 }
 
@@ -531,7 +701,6 @@ void display_menu_block_pin(void){
 
 // -------------------------------------- //
 
-//Maybe is better to build a function that displays the string that I pass
 
 void display_door_open(void){
     Graphics_clearDisplay(&g_sContext);
@@ -594,6 +763,9 @@ void display_clock(int hour, int minute){
                                     OPAQUE_TEXT);
 }
 
+/*
+ * Displays in the center of the screen the passed string
+ */
 void display_string(const char* string){
     Graphics_clearDisplay(&g_sContext);
     GrContextFontSet(&g_sContext, &g_sFontCmss16);

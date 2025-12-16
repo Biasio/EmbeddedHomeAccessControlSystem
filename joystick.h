@@ -5,10 +5,7 @@
 #include <ti/devices/msp432p4xx/driverlib/driverlib.h>
 #include <stdio.h>
 
-
-//static uint16_t resultsBuffer[2]; //visibile only in joystick.c
-extern volatile uint16_t resultsBuffer[2]; //visibile in other files
-
+volatile uint16_t resultsBuffer[2];
 
 //timer used to slow down the adc conversion from the joystick
 static const Timer_A_ContinuousModeConfig continuousModeConfig =
@@ -22,7 +19,7 @@ static const Timer_A_ContinuousModeConfig continuousModeConfig =
 void _timerInit();
 void _adcInit();
 
-uint16_t* get_results_buffer(void);
+const uint16_t* get_results_buffer(void);
 bool data_aquired(void);
 
 #endif
