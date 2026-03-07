@@ -1,2 +1,3 @@
-2026/03/07-15:48:00.718 bd03 Creating DB /Users/biasio/Documents/Documents_Nextcloud/UNITN/EMBEDDED/dev_biasio/.jxbrowser.userdata/Default/GCM Store/Encryption since it was missing.
-2026/03/07-15:48:00.734 bd03 Reusing MANIFEST /Users/biasio/Documents/Documents_Nextcloud/UNITN/EMBEDDED/dev_biasio/.jxbrowser.userdata/Default/GCM Store/Encryption/MANIFEST-000001
+2026/03/06-16:52:09.730 b503 Reusing MANIFEST /Users/biasio/Documents/Documents_Nextcloud/UNITN/EMBEDDED/dev-biasio/workspace_1/.jxbrowser.userdata/Default/GCM Store/Encryption/MANIFEST-000001
+2026/03/06-16:52:09.730 b503 Recovering log #3
+2026/03/06-16:52:09.730 b503 Reusing old log /Users/biasio/Documents/Documents_Nextcloud/UNITN/EMBEDDED/dev-biasio/workspace_1/.jxbrowser.userdata/Default/GCM Store/Encryption/000003.log 
