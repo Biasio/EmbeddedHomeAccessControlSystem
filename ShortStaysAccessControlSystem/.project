@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>ShortStaysAccessControlSystem</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.cdt.managedbuilder.core.ScannerConfigBuilder</name>
+			<triggers>full,incremental,</triggers>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>com.ti.ccstudio.core.ccsNature</nature>
+		<nature>org.eclipse.cdt.core.cnature</nature>
+		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
+		<nature>org.eclipse.cdt.core.ccnature</nature>
+		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>src/LCD_src</name>
+			<type>2</type>
+			<locationURI>$%7BSIMPLELINK_SDK_INSTALL_DIR%7D/examples/nortos/MSP_EXP432P401R/demos/boostxl_edumkii_lightsensor_msp432p401r/LcdDriver</locationURI>
+		</link>
+	</linkedResources>
+	<variableList>
+		<variable>
+			<name>SIMPLELINK_SDK_INSTALL_DIR</name>
+			<value>file:/Users/biasio/Documents/Documents_Nextcloud/UNITN/EMBEDDED/dev-biasio/workspace_1/simplelink_msp432p4_sdk_3_40_01_02</value>
+		</variable>
+	</variableList>
+</projectDescription>
