@@ -30,6 +30,9 @@
 *.x86_64
 *.hex
 
+# Compiler and linker generated files
+/ShortStaysAccessControlSystem/Debug
+/ShortStaysAccessControlSystem/Release
 # Debug files
 *.dSYM/
 *.su
