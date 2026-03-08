@@ -13,9 +13,9 @@ ORDERED_OBJS += \
 "./src/HAL_I2C.obj" \
 "./src/HAL_OPT3001.obj" \
 "./src/display.obj" \
-"./src/door_lock_system.obj" \
 "./src/fsm.obj" \
 "./src/joystick.obj" \
+"./src/main.obj" \
 "./src/push_button.obj" \
 "./src/external_src/LCD_128x128/Crystalfontz128x128_ST7735.obj" \
 "./src/external_src/LCD_128x128/HAL_MSP_EXP432P401R_Crystalfontz128x128_ST7735.obj" \
@@ -155,8 +155,8 @@ ShortStaysAccessControlSystem.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)
-	-$(RM) "startup_msp432p401r_ccs.obj" "system_msp432p401r.obj" "src/HAL_I2C.obj" "src/HAL_OPT3001.obj" "src/display.obj" "src/door_lock_system.obj" "src/fsm.obj" "src/joystick.obj" "src/push_button.obj" "src/external_src/LCD_128x128/Crystalfontz128x128_ST7735.obj" "src/external_src/LCD_128x128/HAL_MSP_EXP432P401R_Crystalfontz128x128_ST7735.obj" 
-	-$(RM) "startup_msp432p401r_ccs.d" "system_msp432p401r.d" "src/HAL_I2C.d" "src/HAL_OPT3001.d" "src/display.d" "src/door_lock_system.d" "src/fsm.d" "src/joystick.d" "src/push_button.d" "src/external_src/LCD_128x128/Crystalfontz128x128_ST7735.d" "src/external_src/LCD_128x128/HAL_MSP_EXP432P401R_Crystalfontz128x128_ST7735.d" 
+	-$(RM) "startup_msp432p401r_ccs.obj" "system_msp432p401r.obj" "src/HAL_I2C.obj" "src/HAL_OPT3001.obj" "src/display.obj" "src/fsm.obj" "src/joystick.obj" "src/main.obj" "src/push_button.obj" "src/external_src/LCD_128x128/Crystalfontz128x128_ST7735.obj" "src/external_src/LCD_128x128/HAL_MSP_EXP432P401R_Crystalfontz128x128_ST7735.obj" 
+	-$(RM) "startup_msp432p401r_ccs.d" "system_msp432p401r.d" "src/HAL_I2C.d" "src/HAL_OPT3001.d" "src/display.d" "src/fsm.d" "src/joystick.d" "src/main.d" "src/push_button.d" "src/external_src/LCD_128x128/Crystalfontz128x128_ST7735.d" "src/external_src/LCD_128x128/HAL_MSP_EXP432P401R_Crystalfontz128x128_ST7735.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 
