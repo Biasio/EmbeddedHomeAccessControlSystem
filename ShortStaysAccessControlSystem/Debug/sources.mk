@@ -113,5 +113,5 @@ PDE_DEPS__QUOTED :=
 SUBDIRS := \
 . \
 src \
-src/LCD_src \
+src/external_src/LCD_128x128 \
 

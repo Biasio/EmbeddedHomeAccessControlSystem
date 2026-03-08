@@ -7,8 +7,8 @@
 "./src/fsm.obj"
 "./src/joystick.obj"
 "./src/push_button.obj"
-"./src/LCD_src/Crystalfontz128x128_ST7735.obj"
-"./src/LCD_src/HAL_MSP_EXP432P401R_Crystalfontz128x128_ST7735.obj"
+"./src/external_src/LCD_128x128/Crystalfontz128x128_ST7735.obj"
+"./src/external_src/LCD_128x128/HAL_MSP_EXP432P401R_Crystalfontz128x128_ST7735.obj"
 "../msp432p401r.cmd"
 -llibc.a
 -lgrlib.a
