@@ -5,9 +5,14 @@
 #include <stdio.h>
 #include <ti/devices/msp432p4xx/driverlib/driverlib.h>
 
+
+
+#define MOVE_ON_MENU 0  //rectangle on display move on admin menu
+#define MOVE_ON_GRID 1  //rectangle on display move on grid numbers
+
 /*
- * This header file defines the states of the system
- */
+ * This header file defines the states of the system, and related data types
+*/
 
 typedef enum{
     STATE_BOOT,
@@ -35,6 +40,29 @@ typedef struct{
     State_t state;
     void (*state_function)(void);
 } StateMachine_t;
+
+
+void _hwInit(void);
+void door_locked(void);
+
+void insert_pin(bool pin);
+void open_door(void);
+void wait_RFID(void);
+int admin_menu(void);
+
+void menu_last_access_log(void);
+void menu_setup_pin(void);
+void menu_setup_wifi(void);
+void menu_factory_reset(void);
+void menu_unlock_door(void);
+void menu_block_pin(void);
+
+void wrong_pin(void);
+void last_pin(void);
+void block_access(void);
+void wait_reset_door(void);
+
+
 
 void fn_BOOT(void);
 void fn_DOOR_LOCKED(void);

@@ -7,7 +7,8 @@
 #include "Crystalfontz128x128_ST7735.h"
 #include <stdio.h>
 
-#define RECTANGLE_SHIFT_ON_GRID 30
+#define RECTANGLE_SHIFT_X_ON_GRID 30
+#define RECTANGLE_SHIFT_Y_ON_GRID 22
 #define RECTANGLE_SHIFT_ON_MENU 30
 
 typedef struct {
@@ -25,7 +26,7 @@ typedef struct {
 
 //used to access the array GRID_POINTS easily
 typedef enum {
-    NUM1, NUM2, NUM3, NUM4, NUM5, NUM6, NUM7, NUM8, NUM9, NUM_POINTS
+    NUM1, NUM2, NUM3, NUM4, NUM5, NUM6, NUM7, NUM8, NUM9, VOID_LEFT, NUM0, VOID_RIGHT, NUM_POINTS
 } PointIndex;
 
 //functions inside admin menu

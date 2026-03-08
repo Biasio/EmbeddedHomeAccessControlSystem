@@ -4,9 +4,6 @@
 #include "push_button.h"
 
 
-#define MOVE_ON_MENU 0  //rectangle on display move on admin menu
-#define MOVE_ON_GRID 1  //rectangle on display move on grid numbers
-
 int saved_pin_user[4] = {1,1,1,1};
 int saved_pin_admin[4] = {9,9,9,9};
 int selected_pin_user[4] = {0,0,0,0};
@@ -18,31 +15,10 @@ const uint16_t* current_results;
 int32_t displayX = 64;
 int32_t displayY = 64;
 
-void _hwInit(void);
-void door_locked(void);
-
-void insert_pin(bool pin);
-void open_door(void);
-void wait_RFID(void);
-int admin_menu(void);
-
-void menu_last_access_log(void);
-void menu_setup_pin(void);
-void menu_setup_wifi(void);
-void menu_factory_reset(void);
-void menu_unlock_door(void);
-void menu_block_pin(void);
-
-void wrong_pin(void);
-void last_pin(void);
-void block_access(void);
-void wait_reset_door(void);
-
 
 // ------------------------------------------------------ //
 
-void _hwInit(void)
-{
+void _hwInit(void){
     /* Halting WDT and disabling master interrupts */
     WDT_A_holdTimer();
     Interrupt_disableMaster();
@@ -72,11 +48,14 @@ void _hwInit(void)
     _pushButtonsInit();
 }
 
+
 void door_locked(void){
     //it is better to update every tot time
     //here we show the hour and minutes
     display_string("10 : 00");
 }
+
+
 
 void insert_pin(bool pin){ //MAYBE WE CAN ADD LMPO HERE
 
@@ -103,25 +82,30 @@ void insert_pin(bool pin){ //MAYBE WE CAN ADD LMPO HERE
             //Button A (S1) used to select a digit
             if(buttonA_pressed){
                 buttonA_pressed=0;
-                number_pin_aquired=1;
+                int selected_val = number_selected();
 
-                char string[2];
+                if (selected_val != -1)
+                {
+                    number_pin_aquired=1;
 
-                if(!pin){ //selected pin
-                    selected_pin_user[i]=number_selected();
-                    sprintf(string, "%d", selected_pin_user[i]);
-                } else{   //saved pin
-                    saved_pin_user[i]=number_selected();
-                    sprintf(string, "%d", saved_pin_user[i]);
+                    char string[2];
+
+                    if(!pin){ //selected pin
+                        selected_pin_user[i]=selected_val;
+                        sprintf(string, "%d", selected_pin_user[i]);
+                    } else{   //saved pin
+                        saved_pin_user[i]=selected_val;
+                        sprintf(string, "%d", saved_pin_user[i]);
+                    }
+
+                    Graphics_setForegroundColor(&g_sContext, ClrBlack);
+                    Graphics_drawStringCentered(&g_sContext, (int8_t *) string,
+                                               AUTO_STRING_LENGTH,
+                                               x, 15,
+                                               OPAQUE_TEXT);
+
+                    x+=20;
                 }
-
-                Graphics_setForegroundColor(&g_sContext, ClrBlack);
-                Graphics_drawStringCentered(&g_sContext, (int8_t *) string,
-                                           AUTO_STRING_LENGTH,
-                                           x, 15,
-                                           OPAQUE_TEXT);
-
-                x+=20;
             }
 
             // BUTTON B to deselect a number (only if is not at the first digit)
@@ -146,9 +130,9 @@ void insert_pin(bool pin){ //MAYBE WE CAN ADD LMPO HERE
 
         } while(number_pin_aquired==0); //when the digit is selected, exit from loop
     }
-
-
 }
+
+
 void open_door(void){
     // - show on display that door is opening
     // - turn on servo
@@ -162,11 +146,15 @@ void open_door(void){
 
 }
 
+
+
 void wait_RFID(void){
     display_string("PLEASE, USE RFID");
     int i;
     for(i=0;i<1000000;i++); //IS BETTER TO USE A TIMER
 }
+
+
 
 int admin_menu(void){
     draw_admin_menu(1); // 1 = FIRST_SCREEN
@@ -195,22 +183,30 @@ int admin_menu(void){
 }
 
 
+
 void menu_last_access_log(void){
     display_menu_last_access_log();
 }
+
 
 
 void menu_setup_wifi(void){
     display_menu_setup_wifi();
 }
 
+
+
 void menu_factory_reset(void){
     display_menu_factory_reset();
 }
 
+
+
 void menu_unlock_door(void){
     display_menu_unlock_door();
 }
+
+
 
 void menu_block_pin(void){
     display_menu_block_pin();
@@ -227,12 +223,15 @@ void wrong_pin(void){
 
 }
 
+
 void block_access(void){
     display_block_access();
 
     int i;
     for(i=0;i<1000000;i++); //BETTER TO USE A TIMER
 }
+
+
 void wait_reset_door(void){
 
 }
@@ -262,6 +261,7 @@ StateMachine_t fsm[] = {
      {STATE_WAIT_RESET_DOOR, fn_WAIT_RESET_DOOR},
 };
 
+
 // -----------------------------------------------//
 // Implementation of the state's functions
 
@@ -270,6 +270,8 @@ void fn_BOOT(void){
     _hwInit();
     cur_state = STATE_DOOR_LOCKED;
 }
+
+
 
 void fn_DOOR_LOCKED(void){
 
@@ -281,6 +283,8 @@ void fn_DOOR_LOCKED(void){
     }
 
 }
+
+
 
 void fn_INSERT_PIN(void){
 
@@ -324,11 +328,13 @@ void fn_INSERT_PIN(void){
     }
 }
 
+
 void fn_OPEN_DOOR(void){
     open_door();
 
     cur_state = STATE_DOOR_LOCKED;
 }
+
 
 void fn_WAIT_RFID(void){
     wait_RFID();
@@ -337,6 +343,8 @@ void fn_WAIT_RFID(void){
 
     cur_state = STATE_ADMIN_MENU;
 }
+
+
 
 void fn_ADMIN_MENU(void){
     int selected_function;
@@ -383,6 +391,7 @@ void fn_menu_lal(void){
     }
 }
 
+
 void fn_menu_setup_pin(void){
     bool pins_equal = 0;
 
@@ -408,6 +417,7 @@ void fn_menu_setup_pin(void){
     cur_state = STATE_ADMIN_MENU;
 }
 
+
 void fn_menu_wifi(void){
     menu_setup_wifi();
 
@@ -418,6 +428,8 @@ void fn_menu_wifi(void){
         cur_state = STATE_ADMIN_MENU;
     }
 }
+
+
 void fn_menu_fact_reset(void){
     menu_factory_reset();
 
@@ -428,6 +440,8 @@ void fn_menu_fact_reset(void){
         cur_state = STATE_ADMIN_MENU;
     }
 }
+
+
 void fn_menu_unlock_door(void){
     menu_unlock_door();
 
@@ -438,6 +452,8 @@ void fn_menu_unlock_door(void){
         cur_state = STATE_ADMIN_MENU;
     }
 }
+
+
 void fn_menu_block_pin(void){
     menu_block_pin();
 
@@ -448,6 +464,8 @@ void fn_menu_block_pin(void){
         cur_state = STATE_ADMIN_MENU;
     }
 }
+
+
 
 // --------------------------------------------- //
 
@@ -463,11 +481,15 @@ void fn_WRONG_PIN(void){
     }
 }
 
+
+
 void fn_BLOCK_ACCESS(void){
     printf("Access blocked \n");
     block_access();
     cur_state = STATE_WAIT_RESET_DOOR;
 }
+
+
 
 void fn_WAIT_RESET_DOOR(void){
     printf("Wait door to be reset \n");
@@ -477,11 +499,10 @@ void fn_WAIT_RESET_DOOR(void){
     //  cur_state = STATE_INSERT_PIN;
 }
 
-// ---------------------------------------------//
 
+// ---------------------------------------------//
 // Function to run in the main
-void FSM_Run(void)
-{
+void FSM_Run(void){
     if(cur_state < NUM_STATES){
         (*fsm[cur_state].state_function)();
     }
@@ -490,7 +511,4 @@ void FSM_Run(void)
     }
 
     PCM_gotoLPM0();
-
-
-
 }
