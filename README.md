@@ -62,4 +62,5 @@ cd <your-repository-name>
 
 
 ### 2. Import the project in CCStudio
-The git repo is a full workspace for ccstudio, so when opening the IDE select the cloned folder as the active workspace. The project should be already configured and working out of the box.
+1. The git repo is a full workspace for ccstudio, so when opening the IDE select the cloned folder as the active workspace. 
+2. The project should be already configured and working out of the box; if no project is automatically imported do "Import Project > Code Composer Studio > CCS Projects > Browse... > Select the ShortStaysAccessControlSystem folder inside the repo location > tick the ccs project > click Finish "
