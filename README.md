@@ -38,3 +38,28 @@ Access control for door opening in short stays
 
 
 
+## Prerequisites
+
+### Software
+Ensure you have the following installed before cloning:
+* **[Git LFS](https://git-lfs.com/)**: Required. We use Large File Storage to track the SIMPLELINK SDK libraries.
+* **Code Composer Studio (CCS) v12.8**.
+
+### Hardware:
+* **TexasInstruments' MSP-EXP432P401R Board**
+* **Texas Instruments' BoosterPack BOOSTXL-EDUMKII**
+
+## Getting Started
+
+Follow these steps to build the project:
+
+### 1. Clone the Repository
+Because we use Git LFS, make sure LFS is initialized on your machine before cloning:
+```bash
+git lfs install
+git clone <your-repository-url>
+cd <your-repository-name>
+
+
+### 2. Import the project in CCStudio
+The git repo is a full workspace for ccstudio, so when opening the IDE select the cloned folder as the active workspace. The project should be already configured and working out of the box.
