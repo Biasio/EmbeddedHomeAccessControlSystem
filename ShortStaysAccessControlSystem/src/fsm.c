@@ -46,6 +46,9 @@ void _hwInit(void){
 
     //buttons
     _pushButtonsInit();
+
+    // Presence sensor
+    //_pirInit();
 }
 
 
@@ -511,5 +514,5 @@ void FSM_Run(void){
         // Gestione errore stato non valido
     }
 
-    PCM_gotoLPM0();
+    //PCM_gotoLPM0();
 }

@@ -6,9 +6,10 @@ static bool move_rectangle = 0;
 
 static int timer_int_counter = 0;
 
-static const int NUM_INTERRUPT = 3;
+//static const int NUM_INTERRUPT = 2;
 
 void _timerInit(){
+
     /* Configuring Continuous Mode */
     Timer_A_configureContinuousMode(TIMER_A0_BASE, &continuousModeConfig);
 
@@ -23,9 +24,12 @@ void _adcInit(){
         GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P6, GPIO_PIN0, GPIO_TERTIARY_MODULE_FUNCTION);
         GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P4, GPIO_PIN4, GPIO_TERTIARY_MODULE_FUNCTION);
 
+        //Route VLO to Auxiliary clock
+        CS_initClockSignal(CS_ACLK,CS_VLOCLK_SELECT,CS_CLOCK_DIVIDER_16); //VLOCLK ~9.4kHz
+
         /* Initializing ADC (ADCOSC/64/8) */
         ADC14_enableModule();
-        ADC14_initModule(ADC_CLOCKSOURCE_ADCOSC, ADC_PREDIVIDER_64, ADC_DIVIDER_8, 0);
+        ADC14_initModule(ADC_CLOCKSOURCE_ACLK, ADC_PREDIVIDER_1, ADC_DIVIDER_1, 0);
 
         /* Configuring ADC Memory (ADC_MEM0 - ADC_MEM1 (A15, A9)  with repeat)
              * with internal 2.5v reference */
@@ -49,27 +53,16 @@ void _adcInit(){
         /* Setting up the sample timer to automatically step through the sequence
          * convert.
          */
-        ADC14_enableSampleTimer(ADC_AUTOMATIC_ITERATION);
-
-        /* Triggering the start of the sample */
+        ADC14_enableSampleTimer(ADC_MANUAL_ITERATION);
         ADC14_enableConversion();
-        ADC14_toggleConversionTrigger();
 }
 
-//The movement is too fast, add a counter for the timer interrupt
-bool update_rectangle_pos(uint64_t status)
-{
-    return move_rectangle && (status & ADC_INT1);
-}
-
+// timer to make joystick updates
 void TA0_N_IRQHandler(void)
 {
     /* clear the timer pending interrupt flag */
     Timer_A_clearInterruptFlag(TIMER_A0_BASE);
-    if(++timer_int_counter==NUM_INTERRUPT){
-        timer_int_counter=0;
-        move_rectangle=1;
-    }
+    ADC14_toggleConversionTrigger();
 }
 
 void ADC14_IRQHandler(void)
@@ -79,14 +72,12 @@ void ADC14_IRQHandler(void)
     status = ADC14_getEnabledInterruptStatus();
     ADC14_clearInterruptFlag(status);
 
-    if(update_rectangle_pos(status)) //timer as finished, can update position on display
+    if(status & ADC_INT1) //timer has finished, can update position on display
     {
         resultsBuffer[0] = ADC14_getResult(ADC_MEM0);
         resultsBuffer[1] = ADC14_getResult(ADC_MEM1);
-
-        move_rectangle=0;
+        move_rectangle=1;
     }
-
 }
 
 // GETTER:
@@ -96,7 +87,9 @@ const uint16_t* get_results_buffer(void) {
 }
 
 bool data_aquired(void){
-    return move_rectangle;
+    bool state = move_rectangle;
+    move_rectangle = 0;
+    return state;
 }
 
 

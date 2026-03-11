@@ -301,13 +301,14 @@ void move_rectangle_down(Rectangle* rectangle, int16_t shift){
 
 void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on) {
 
-    const int RIGHT = 16000;
-    const int LEFT = 300;
-    const int UP = 16000;
-    const int DOWN = 100;
+    const int RIGHT = 12000;
+    const int LEFT = 4000;
+    const int UP = 12000;
+    const int DOWN = 4000;
 
     //move rectangle on grid
-    if(grid_on){
+    if(grid_on)
+    {
        move_on_menu = 0;
 
        const int GRID_UPPER_LIMIT_X = 80;
@@ -320,24 +321,27 @@ void move_rectangle_on_display( uint16_t x, uint16_t y, bool grid_on) {
                move_rectangle_right(&sel_rectangle_on_grid, RECTANGLE_SHIFT_X_ON_GRID);
            }
        }
-       if(x<LEFT) {
+       else if(x<LEFT)
+       {
            if(sel_rectangle_on_grid.pos_x1 > GRID_LOWER_LIMIT_X) {
                move_rectangle_left(&sel_rectangle_on_grid, RECTANGLE_SHIFT_X_ON_GRID);
            }
        }
-       if(y>UP) {
+       else if(y>UP)
+       {
            if(sel_rectangle_on_grid.pos_y1 > GRID_LOWER_LIMIT_Y){
                move_rectangle_up(&sel_rectangle_on_grid, RECTANGLE_SHIFT_Y_ON_GRID);
            }
        }
-       if(y<DOWN) {
+       else if(y<DOWN)
+       {
            if(sel_rectangle_on_grid.pos_y1 < GRID_UPPER_LIMIT_Y) {
                move_rectangle_down(&sel_rectangle_on_grid, RECTANGLE_SHIFT_Y_ON_GRID);
            }
        }
     }
-
-    else{ //move rectangle on menu
+    else //move rectangle on menu
+    {
        move_on_menu = 1;
 
        const int UPPER_LIMIT = 80;
