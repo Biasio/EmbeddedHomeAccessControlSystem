@@ -62,7 +62,7 @@ void _graphicsInit()
 void draw_grid(void)
 {
     Graphics_clearDisplay(&g_sContext);
-    GrContextFontSet(&g_sContext, &g_sFontCmss24);
+    GrContextFontSet(&g_sContext, &g_sFontCmss18);
     Graphics_setForegroundColor(&g_sContext, ClrBlack);
 
     // Initial position to draw the lines
@@ -87,7 +87,7 @@ void draw_grid(void)
     int x, y;
     i = 1;
 
-    for(y=start_y+11; y<=end_y-11; y+=RECTANGLE_SHIFT_Y_ON_GRID){
+    for(y=start_y+9; y<=end_y-11; y+=RECTANGLE_SHIFT_Y_ON_GRID){
         for(x=start_x+15; x<=end_x-15; x+=RECTANGLE_SHIFT_X_ON_GRID){
             if (i <= 9) {
                 sprintf(string, "%d", i);
@@ -494,7 +494,7 @@ int number_selected(void){
 
             // --- Feedback Flash Sequence Start ---
 
-            GrContextFontSet(&g_sContext, &g_sFontCmss24);
+            GrContextFontSet(&g_sContext, &g_sFontCmss18);
             Graphics_setForegroundColor(&g_sContext, ClrRed);
             Graphics_fillRectangle(&g_sContext, &rect);
             int j;

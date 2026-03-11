@@ -16,6 +16,7 @@ typedef struct {
     int y;
 } Point;
 
+
 typedef struct {
     int pos_x1;
     int pos_x2;
