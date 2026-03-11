@@ -99,9 +99,10 @@ void insert_pin(bool pin){ //MAYBE WE CAN ADD LMPO HERE
                     }
 
                     Graphics_setForegroundColor(&g_sContext, ClrBlack);
+                    GrContextFontSet(&g_sContext, &g_sFontCmss18);
                     Graphics_drawStringCentered(&g_sContext, (int8_t *) string,
                                                AUTO_STRING_LENGTH,
-                                               x, 15,
+                                               x, 12,
                                                OPAQUE_TEXT);
 
                     x+=20;

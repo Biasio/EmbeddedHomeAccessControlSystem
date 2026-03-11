@@ -14,7 +14,7 @@ bool first_screen = 1; //in the admin menu you are in the first screen (first 3 
 
 //these points are used to select the numbers on the grid
 //at each point corresponds a number
-const Point GRID_POINTS[] = {
+Point GRID_POINTS[] = {
      // P1 | P2 | P3
      { 35, 43 }, { 65, 43 }, { 95, 43 },
      // P4 | P5 | P6
@@ -96,6 +96,8 @@ void draw_grid(void)
             } else {
                 string[0] = '\0';
             }
+            GRID_POINTS[i-1].x = x;
+            GRID_POINTS[i-1].y = y;
             ++i;
 
             Graphics_drawStringCentered(&g_sContext, (int8_t *) string,
